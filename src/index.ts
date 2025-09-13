@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
 import { resolveAndExecute, resolveVariables } from './core/resolver';
-import { loadConfig } from './config/loader';
+
+import { Command } from 'commander';
 import { EnvoiError } from './utils/errors';
 import { LocalProvider } from './providers/local';
 import { VaultProvider } from './providers/vault';
+import { loadConfig } from './config/loader';
 import { providerRegistry } from './providers/registry';
+import { Logger } from './utils/logger';
 
 // Register built-in providers
 providerRegistry.register(new LocalProvider());
@@ -16,38 +18,53 @@ try {
   providerRegistry.register(new VaultProvider());
 } catch (error) {
   // Vault provider requires optional dependencies, fail gracefully
+  Logger.warn('Vault provider not registered. Ensure dependencies are installed if you plan to use Vault.');
 }
 
 const program = new Command();
 
 program
   .name('envoi')
-  .description('Environment-agnostic configuration orchestrator\n\nLoad environment variables from multiple sources (.env files, HashiCorp Vault) and execute commands with injected configuration.\n\nExamples:\n  envoi exec "node server.js"\n  envoi env\n  envoi exec "echo $DATABASE_URL" --verbose')
+  .description('Environment-agnostic configuration orchestrator\n\nLoad environment variables from multiple sources (.env files, HashiCorp Vault) and execute commands with injected configuration.\n\nExamples:\n  envoi exec "node server.js"\n  envoi exec -- node server.js\n  envoi env\n  envoi exec "echo $DATABASE_URL" --verbose')
   .version('1.0.0');
 
 program
   .command('exec', { isDefault: true })
-  .description('Execute a command with injected environment variables\n\nLoads variables from configured sources (.env files, HashiCorp Vault) and injects them into the command environment.\nVariables are resolved in order: existing env → configured sources → defaults.\n\nExamples:\n  envoi exec "node server.js"\n  envoi exec "npm start" --config ./config/envoi.yml\n  envoi exec "echo $DATABASE_URL" --verbose')
-  .argument('<command...>', 'Command to execute (e.g., "node server.js", "npm start")')
+  .description('Execute a command with injected environment variables\n\nLoads variables from configured sources (.env files, HashiCorp Vault) and injects them into the command environment.\nVariables are resolved in order: existing env → configured sources → defaults.\n\nExamples:\n  envoi exec "node server.js"\n  envoi exec -- node server.js\n  envoi exec "npm start" --config ./config/envoi.yml\n  envoi exec -- npm start --config ./config/envoi.yml\n  envoi exec "echo $DATABASE_URL" --verbose')
+  .allowUnknownOption()
   .option('-c, --config <path>', 'Path to envoi.yml configuration file (default: "./envoi.yml")', './envoi.yml')
   .option('-v, --verbose', 'Enable verbose output showing variable resolution process', false)
-  .action(async (command: string[], options) => {
+  .action(async (options, command) => {
     try {
-      const fullCommand = command.join(' ');
+      const rawArgs = command.args;
+      const separatorIndex = rawArgs.indexOf('--');
+      
+      let fullCommand: string;
+      
+      if (separatorIndex !== -1) {
+        // New syntax: envoi exec -- node server.js
+        const commandArgs = rawArgs.slice(separatorIndex + 1);
+        fullCommand = commandArgs.join(' ');
+      } else if (rawArgs.length > 0) {
+        // Old syntax: envoi exec "node server.js"
+        fullCommand = rawArgs.join(' ');
+      } else {
+        throw new EnvoiError('No command specified. Use: envoi exec -- <command> or envoi exec "<command>"');
+      }
       
       if (options.verbose) {
-        console.log(`Loading configuration from: ${options.config}`);
-        console.log(`Executing command: ${fullCommand}`);
+        Logger.info(`Loading configuration from: ${options.config}`);
+        Logger.info(`Executing command: ${fullCommand}`);
       }
 
       const config = await loadConfig(options.config);
       await resolveAndExecute(config, fullCommand, options.verbose);
     } catch (error) {
       if (error instanceof EnvoiError) {
-        console.error(`❌ ${error.message}`);
+        Logger.error(error.message);
         process.exit(1);
       } else {
-        console.error('❌ An unexpected error occurred:', error);
+        Logger.errorWithContext('An unexpected error occurred:', error);
         process.exit(1);
       }
     }
@@ -62,26 +79,25 @@ program
       const config = await loadConfig(options.config);
       const resolvedVariables = await resolveVariables(config);
 
-      console.log('envoi environment variables:');
-      console.log('');
+      Logger.header('envoi environment variables:');
+      Logger.blank();
 
       if (resolvedVariables.length === 0) {
-        console.log('  No environment variables configured');
+        Logger.noVariables();
         return;
       }
 
       const maxNameLength = Math.max(...resolvedVariables.map(v => v.name.length));
       
       resolvedVariables.forEach(variable => {
-        const padding = ' '.repeat(maxNameLength - variable.name.length + 2);
-        console.log(`  ${variable.name}:${padding}${variable.value} (${variable.source})`);
+        Logger.variable(variable.name, variable.value, variable.source, maxNameLength + 2);
       });
     } catch (error) {
       if (error instanceof EnvoiError) {
-        console.error(`❌ ${error.message}`);
+        Logger.error(error.message);
         process.exit(1);
       } else {
-        console.error('❌ An unexpected error occurred:', error);
+        Logger.errorWithContext('An unexpected error occurred:', error);
         process.exit(1);
       }
     }

@@ -33,12 +33,25 @@ npm run clean
 # Test the built CLI
 node dist/index.js --help
 node dist/index.js exec "echo \$VAR_NAME" --verbose
+node dist/index.js exec -- echo \$VAR_NAME --verbose
 
 # Test with example configuration
 cp envoi.example.yml envoi.yml
 cp .env.example .env
 node dist/index.js exec "node -e \"console.log(process.env.DATABASE_URL)\""
+node dist/index.js exec -- node -e "console.log(process.env.DATABASE_URL)"
 ```
+
+### Colored Logging
+The CLI now features colorized logging for better user experience:
+- 🔵 **Blue**: Information messages (config loading, execution)
+- 🟡 **Yellow**: Warning messages (missing dependencies)
+- 🔴 **Red**: Error messages (configuration issues, execution failures)
+- ⚫ **Gray**: Debug messages (verbose mode details)
+- 🟢 **Green**: Success messages
+- 🔵 **Cyan**: Environment variable names in output
+
+Use `--verbose` flag to see detailed debug information with colored output.
 
 ## Architecture
 
@@ -55,6 +68,9 @@ node dist/index.js exec "node -e \"console.log(process.env.DATABASE_URL)\""
 
 **Core Engine** (`src/core/`):
 - `resolver.ts`: Main logic for variable resolution and subprocess execution
+
+**Utilities** (`src/utils/`):
+- `logger.ts`: Centralized colorized logging system with support for different log levels
 
 **CLI Entry Point** (`src/index.ts`):
 - Commander.js-based CLI interface

@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import { EnvoiConfig, ResolvedVariable } from '../types';
 import { providerRegistry } from '../providers/registry';
 import { ValidationError, ProviderError } from '../utils/errors';
+import { Logger } from '../utils/logger';
 
 export async function resolveVariables(config: EnvoiConfig): Promise<ResolvedVariable[]> {
   const resolvedVariables: ResolvedVariable[] = [];
@@ -70,12 +71,13 @@ export async function resolveAndExecute(
   command: string, 
   verbose: boolean = false
 ): Promise<void> {
+  Logger.setDebug(verbose);
   const resolvedVariables = await resolveVariables(config);
 
   if (verbose) {
-    console.log('Resolved variables:');
+    Logger.debug('Resolved variables:');
     resolvedVariables.forEach(variable => {
-      console.log(`  ${variable.name}: ${variable.source}`);
+      Logger.debugDetail(`${variable.name}: ${variable.source}`);
     });
   }
 
@@ -93,7 +95,7 @@ export async function resolveAndExecute(
     }
 
     if (verbose) {
-      console.log(`Executing: ${command}`);
+      Logger.debug(`Executing: ${command}`);
     }
 
     const child = spawn(cmd, args, {
