@@ -1,10 +1,11 @@
 # envoi
+*Your trusted configuration messenger*
 
 Environment-agnostic configuration orchestrator for consistent application deployment.
 
 ## Overview
 
-`envoi` is a CLI tool that manages environment variables and configuration across different environments (local, staging, production) from a single source of truth (`envoi.yml`). It ensures your application runs consistently everywhere while maintaining security best practices.
+`envoi` is a CLI tool that acts as your trusted configuration messenger, delivering environment variables and configuration across different environments (local, staging, production) from a single source of truth (`envoi.yml`). Like a diplomatic envoy who carries important messages securely, envoi ensures your application receives the right configuration consistently everywhere while maintaining security best practices.
 
 ## Features
 
@@ -15,6 +16,22 @@ Environment-agnostic configuration orchestrator for consistent application deplo
 - **Validation**: Ensure required variables are present before execution
 - **Security**: No secret caching or disk writing - variables are loaded directly into memory
 - **Zero Setup**: New developers can start immediately without manual configuration
+
+## About the Name
+
+**Envoi**: A variant of "Envoy" (messenger) - An agent that delivers configuration to processes.
+
+### Why "Envoi" is the Perfect Name
+
+- **Sonido & Elegancia**: Es corto, fácil de pronunciar y tiene un aire sofisticado y moderno gracias a su origen francés.
+
+- **Perfect Metaphor**: Like a diplomatic envoy who delivers important messages securely, envoi ensures your configuration and secrets are safely delivered to your processes. The metaphor perfectly captures the tool's purpose: acting as a trusted agent for configuration transport.
+
+- **CLI-Friendly**: The name is quick to type (`envoi exec ...`) has excellent command-line ergonomics, and is memorable for daily development workflows.
+
+- **Brandable**: Not a generic name, giving you strong potential for visual identity and brand development around the project.
+
+The name reflects both elegance and purpose - envoi doesn't just manage configuration, it delivers it with the care and importance of a diplomatic mission.
 
 ## Installation
 
@@ -57,13 +74,13 @@ DB_URL=postgresql://user:password@localhost:5432/mydb
 EXTERNAL_API_KEY=your-api-key-here
 ```
 
-3. Run your application with `envoi`:
+3. Let envoi deliver your configuration to the application:
 
 ```bash
-# Traditional syntax
+# Traditional syntax - envoi delivers your configuration
 envoi exec "npm start"
 
-# New -- separator syntax (recommended for complex commands)
+# New -- separator syntax - your messenger in action (recommended for complex commands)
 envoi exec -- npm start
 ```
 
@@ -141,20 +158,20 @@ sources:
 ### Basic Usage
 
 ```bash
-# Run a command with injected environment variables (traditional syntax)
+# Your configuration messenger in action (traditional syntax)
 envoi exec "npm start"
 
 # Use the new -- separator syntax (better for complex commands)
 envoi exec -- npm start
 
-# Use with command arguments and options
+# Deliver configuration with command arguments and options
 envoi exec -- node server.js --port 3000 --debug
 
 # Use a custom configuration file
 envoi exec "node app.js" --config ./config/envoi.yml
 envoi exec -- node app.js --config ./config/envoi.yml
 
-# Enable verbose output with colored debugging information
+# Enable verbose output to watch your messenger work
 envoi exec "npm test" --verbose
 envoi exec -- npm test --verbose
 ```
@@ -188,7 +205,7 @@ envoi env --config ./config/envoi.yml
 - 🟢 **Green**: Success messages
 - 🔵 **Cyan**: Environment variable names in listings
 
-**Example Output:**
+**Watch Your Messenger Work:**
 ```bash
 $ envoi exec -- npm start --verbose
 ⚠ Vault provider not registered. Ensure dependencies are installed if you plan to use Vault.
