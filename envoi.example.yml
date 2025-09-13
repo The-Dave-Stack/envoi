@@ -1,0 +1,30 @@
+variables:
+  - name: DATABASE_URL
+    required: true
+    description: "Database connection string"
+  - name: API_KEY
+    required: true
+    description: "API key for external service"
+  - name: NODE_ENV
+    required: false
+    default: "development"
+    description: "Node.js environment"
+  - name: PORT
+    required: false
+    default: "3000"
+    description: "Server port"
+
+sources:
+  DATABASE_URL:
+    type: local
+    file: .env
+    key: DB_URL
+  API_KEY:
+    type: local
+    file: .env
+    key: EXTERNAL_API_KEY
+  # Example for Vault integration (v1.1)
+  # SECRET_TOKEN:
+  #   type: vault
+  #   path: secret/data/myapp
+  #   key: api_token
