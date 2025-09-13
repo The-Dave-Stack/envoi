@@ -9,7 +9,9 @@ Environment-agnostic configuration orchestrator for consistent application deplo
 ## Features
 
 - **Single Source of Truth**: Define all required environment variables in `envoi.yml`
-- **Multiple Providers**: Support for `.env` files and HashiCorp Vault (v1.1)
+- **Multiple Providers**: Support for `.env` files and HashiCorp Vault
+- **Flexible Command Syntax**: Use both `envoi exec "command"` and `envoi exec -- command` formats
+- **Colored Logging**: Beautiful colorized output with clear visual hierarchy
 - **Validation**: Ensure required variables are present before execution
 - **Security**: No secret caching or disk writing - variables are loaded directly into memory
 - **Zero Setup**: New developers can start immediately without manual configuration
@@ -58,8 +60,39 @@ EXTERNAL_API_KEY=your-api-key-here
 3. Run your application with `envoi`:
 
 ```bash
+# Traditional syntax
 envoi exec "npm start"
+
+# New -- separator syntax (recommended for complex commands)
+envoi exec -- npm start
 ```
+
+## Command Syntax Options
+
+### Traditional Syntax (Quoted Commands)
+```bash
+envoi exec "npm start"
+envoi exec "node server.js --port 3000"
+envoi exec "npm run build && npm run test"
+```
+
+### -- Separator Syntax (Recommended)
+```bash
+envoi exec -- npm start
+envoi exec -- node server.js --port 3000
+envoi exec -- npm run build
+envoi exec -- npm run test
+```
+
+**Why use the -- separator?**
+- **Better argument handling**: Command arguments aren't misinterpreted as envoi options
+- **No quoting needed**: Complex commands with spaces and quotes work naturally
+- **Shell completion**: Works better with shell auto-completion
+- **Clear separation**: Explicit distinction between envoi options and the target command
+
+**When to use each syntax:**
+- Use **-- separator** for most cases, especially with complex commands
+- Use **quoted syntax** for simple commands or when you need shell operators (&&, ||, |)
 
 ## Configuration
 
@@ -108,14 +141,32 @@ sources:
 ### Basic Usage
 
 ```bash
-# Run a command with injected environment variables
+# Run a command with injected environment variables (traditional syntax)
 envoi exec "npm start"
+
+# Use the new -- separator syntax (better for complex commands)
+envoi exec -- npm start
+
+# Use with command arguments and options
+envoi exec -- node server.js --port 3000 --debug
 
 # Use a custom configuration file
 envoi exec "node app.js" --config ./config/envoi.yml
+envoi exec -- node app.js --config ./config/envoi.yml
 
-# Enable verbose output
+# Enable verbose output with colored debugging information
 envoi exec "npm test" --verbose
+envoi exec -- npm test --verbose
+```
+
+### Listing Environment Variables
+
+```bash
+# Show all resolved environment variables with colorized output
+envoi env
+
+# Use custom configuration file
+envoi env --config ./config/envoi.yml
 ```
 
 ### Environment Variables
@@ -125,6 +176,30 @@ envoi exec "npm test" --verbose
 1. **Existing Environment Variables**: Already set in the environment
 2. **Configured Sources**: From `.env` files or Vault
 3. **Default Values**: Specified in `envoi.yml`
+
+### Colored Logging
+
+`envoi` features beautiful colorized output to improve user experience:
+
+- 🔵 **Blue**: Information messages (configuration loading, command execution)
+- 🟡 **Yellow**: Warning messages (missing dependencies, configuration issues)
+- 🔴 **Red**: Error messages (validation failures, execution errors)
+- ⚫ **Gray**: Debug messages (verbose mode details)
+- 🟢 **Green**: Success messages
+- 🔵 **Cyan**: Environment variable names in listings
+
+**Example Output:**
+```bash
+$ envoi exec -- npm start --verbose
+⚠ Vault provider not registered. Ensure dependencies are installed if you plan to use Vault.
+ℹ Loading configuration from: ./envoi.yml
+ℹ Executing command: npm start
+🐛 Resolved variables:
+  DATABASE_URL: local:DB_URL
+  API_KEY: local:EXTERNAL_API_KEY
+  NODE_ENV: default
+🐛 Executing: npm start
+```
 
 ## Examples
 
@@ -243,6 +318,13 @@ npm run lint:fix
 - HashiCorp Vault provider integration
 - Token-based authentication
 - Secure secret management
+
+### v1.2 (Latest)
+- **Flexible Command Syntax**: Added support for `--` separator in `envoi exec` commands
+- **Colored Logging**: Beautiful colorized output with clear visual hierarchy
+- **Centralized Logger**: Unified logging system with configurable debug output
+- **Enhanced Error Handling**: Better error messages with context and color coding
+- **Improved UX**: Environment variable listings with color-coded sources
 
 ## Contributing
 
