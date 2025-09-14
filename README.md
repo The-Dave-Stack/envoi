@@ -1,130 +1,172 @@
 # envoi
+[![npm version](https://badge.fury.io/js/envoi.svg)](https://badge.fury.io/js/envoi)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 *Your trusted configuration messenger*
 
 Environment-agnostic configuration orchestrator for consistent application deployment.
 
 ## Overview
 
-`envoi` is a CLI tool that acts as your trusted configuration messenger, delivering environment variables and configuration across different environments (local, staging, production) from a single source of truth (`envoi.yml`). Like a diplomatic envoy who carries important messages securely, envoi ensures your application receives the right configuration consistently everywhere while maintaining security best practices.
+`envoi` is a CLI tool that acts as your trusted configuration messenger, delivering environment variables from a single source of truth (`envoi.yml`) across all your environments. Like a diplomatic envoy, it ensures your application receives the right configuration securely and consistently, everywhere.
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Quick Start](#quick-start)
+  - [Executing Commands](#executing-commands)
+  - [Listing Variables](#listing-variables)
+  - [Default Command](#default-command)
+  - [Advanced Options](#advanced-options)
+- [Configuration Reference](#configuration-reference)
+  - [`envoi.yml` Structure](#envoiyml-structure)
+  - [Providers](#providers)
+  - [Variable Resolution Order](#variable-resolution-order)
+- [Examples](#examples)
+- [Development](#development)
+- [Version History](#version-history)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
 
 ## Features
 
-- **Single Source of Truth**: Define all required environment variables in `envoi.yml`
-- **Multiple Providers**: Support for `.env` files and HashiCorp Vault
-- **Default Command Configuration**: Set default commands in `envoi.yml` with command-line override capability
-- **Flexible Command Syntax**: Use both `envoi exec "command"` and `envoi exec -- command` formats
-- **Colored Logging**: Beautiful colorized output with clear visual hierarchy
-- **Validation**: Ensure required variables are present before execution
-- **Security**: No secret caching or disk writing - variables are loaded directly into memory
-- **Zero Setup**: New developers can start immediately without manual configuration
+- **Single Source of Truth**: Define all required environment variables in `envoi.yml`.
+- **Multiple Providers**: Support for `.env` files and HashiCorp Vault.
+- **Default Command Configuration**: Set default commands in `envoi.yml` with command-line override capability.
+- **Flexible Command Syntax**: Use both `envoi exec "command"` and `envoi exec -- command` formats.
+- **Colored Logging**: Beautiful colorized output with a clear visual hierarchy.
+- **Validation**: Ensure required variables are present before execution.
+- **Security**: No secret caching or disk writing—variables are loaded directly into memory.
+- **Zero Setup**: New developers can start immediately without manual configuration.
 
-## About the Name
-
-**Envoi**: A variant of "Envoy" (messenger) - An agent that delivers configuration to processes.
+---
 
 ## Installation
 
 ```bash
 npm install -g envoi
+````
+
+-----
+
+## Usage
+
+### Quick Start
+
+Get started in 3 steps:
+
+1.  **Define your configuration contract in `envoi.yml`:**
+
+    ```yaml
+    variables:
+      - name: DATABASE_URL
+        required: true
+      - name: API_KEY
+        required: true
+
+    sources:
+      DATABASE_URL:
+        type: local
+        file: .env
+        key: DB_URL
+      API_KEY:
+        type: local
+        file: .env
+        key: EXTERNAL_API_KEY
+    ```
+
+2.  **Provide the values in `.env`:**
+
+    ```bash
+    DB_URL=postgresql://user:password@localhost:5432/mydb
+    EXTERNAL_API_KEY=your-api-key-here
+    ```
+
+3.  **Run your app with `envoi`:**
+
+    ```bash
+    # Use the -- separator for clear command execution
+    envoi exec -- node your-app.js
+    ```
+
+### Executing Commands
+
+`envoi` supports two syntax styles. The `--` separator is recommended for clarity and reliability.
+
+  - **Recommended (`--` separator):** `envoi exec -- node server.js --port 3000`
+  - **Quoted:** `envoi exec "node server.js --port 3000"`
+
+**Why use the `--` separator?** It prevents your command's arguments from being misinterpreted as `envoi` options, works better with shell auto-completion, and requires no messy quoting for complex commands.
+
+### Listing Variables
+
+To preview the variables `envoi` will load without running the command, use `envoi env`:
+
+```bash
+$ envoi env
+envoi environment variables:
+
+  DATABASE_URL:  postgresql://user:password@localhost:5432/mydb (local:DB_URL)
+  API_KEY:       sk-your-api-key-here (local:EXTERNAL_API_KEY)
+
+Default Command:
+
+  npm start - Start the application server
 ```
 
-## Quick Start
+### Default Command
 
-1. Create an `envoi.yml` configuration file:
+You can specify a default command in `envoi.yml` to run when you don't provide one.
 
 ```yaml
-variables:
-  - name: DATABASE_URL
-    required: true
-    description: "Database connection string"
-  - name: API_KEY
-    required: true
-    description: "API key for external service"
-  - name: NODE_ENV
-    required: false
-    default: "development"
-    description: "Node.js environment"
-
-sources:
-  DATABASE_URL:
-    type: local
-    file: .env
-    key: DB_URL
-  API_KEY:
-    type: local
-    file: .env
-    key: EXTERNAL_API_KEY
-
-# Default command to execute when no command-line arguments are provided
+# envoi.yml
 command:
   default: "npm start"
-  description: "Start the application server"
+  description: "Start the development server"
 ```
 
-2. Create a `.env` file:
+Now, simply run `envoi exec` to execute `npm start`. Any command provided on the command line will override this default.
 
-```bash
-DB_URL=postgresql://user:password@localhost:5432/mydb
-EXTERNAL_API_KEY=your-api-key-here
-```
+### Advanced Options
 
-3. Let envoi deliver your configuration to the application:
+  - **Custom Config File:** Use a different configuration file with the `--config` flag.
+    ```bash
+    envoi exec -- node app.js --config ./config/envoi.prod.yml
+    ```
+  - **Verbose Output:** Get detailed debug information with the `--verbose` flag.
+    ```bash
+    envoi exec -- npm test --verbose
+    ```
 
-```bash
-# Traditional syntax - envoi delivers your configuration
-envoi exec "npm start"
+-----
 
-# New -- separator syntax - your messenger in action (recommended for complex commands)
-envoi exec -- npm start
-```
+## Configuration Reference
 
-## Command Syntax Options
-
-### Traditional Syntax (Quoted Commands)
-```bash
-envoi exec "npm start"
-envoi exec "node server.js --port 3000"
-envoi exec "npm run build && npm run test"
-```
-
-### -- Separator Syntax (Recommended)
-```bash
-envoi exec -- npm start
-envoi exec -- node server.js --port 3000
-envoi exec -- npm run build
-envoi exec -- npm run test
-```
-
-**Why use the -- separator?**
-- **Better argument handling**: Command arguments aren't misinterpreted as envoi options
-- **No quoting needed**: Complex commands with spaces and quotes work naturally
-- **Shell completion**: Works better with shell auto-completion
-- **Clear separation**: Explicit distinction between envoi options and the target command
-
-**When to use each syntax:**
-- Use **-- separator** for most cases, especially with complex commands
-- Use **quoted syntax** for simple commands or when you need shell operators (&&, ||, |)
-
-## Configuration
-
-### envoi.yml Structure
+### `envoi.yml` Structure
 
 ```yaml
+# A list of variables your application expects in its environment.
 variables:
-  - name: VARIABLE_NAME          # Environment variable name
-    required: true               # Whether the variable is required
-    default: "default_value"     # Default value for optional variables
-    description: "Description"    # Documentation for the variable
+  - name: VARIABLE_NAME          # The final environment variable name (e.g., API_KEY).
+    required: true               # Fails if the variable cannot be resolved.
+    default: "default_value"     # Optional: A fallback value if not found in sources.
+    description: "Description"    # Documents the variable's purpose.
 
+# Maps how each variable is sourced.
 sources:
   VARIABLE_NAME:
-    type: local                  # Provider type: 'local' or 'vault'
-    file: .env                  # For local provider: .env file path
-    key: ENV_KEY                # Key to look up in the source
+    type: local                  # Provider type: 'local' or 'vault'.
+    file: .env                  # For 'local' provider: the source file path.
+    key: ENV_KEY                # The key to look up in the source file.
 
-command:                          # Optional default command configuration
-  default: "npm start"           # Default command to execute
-  description: "Start server"    # Description of the default command
+# Optional: A default command to run if none is provided via the command line.
+command:
+  default: "npm start"
+  description: "Start the application server."
 ```
 
 ### Providers
@@ -141,7 +183,7 @@ sources:
 
 #### Vault Provider (v1.1)
 
-Requires `VAULT_TOKEN` environment variable.
+Requires `VAULT_TOKEN` and `VAULT_ADDR` environment variables to be set.
 
 ```yaml
 sources:
@@ -151,109 +193,15 @@ sources:
     key: api_token
 ```
 
-## Usage
+### Variable Resolution Order
 
-### Basic Usage
+`envoi` resolves and loads variables with the following priority (1 wins):
 
-```bash
-# Your configuration messenger in action (traditional syntax)
-envoi exec "npm start"
+1.  **Existing Environment Variables**: Any variable already present in the shell environment will be used and **will not be overwritten** by `envoi` sources.
+2.  **Configured Sources**: Values fetched from providers like `.env` files or Vault.
+3.  **Default Values**: Fallback values specified in the `variables` section of `envoi.yml`.
 
-# Use the new -- separator syntax (better for complex commands)
-envoi exec -- npm start
-
-# Deliver configuration with command arguments and options
-envoi exec -- node server.js --port 3000 --debug
-
-# Use a custom configuration file
-envoi exec "node app.js" --config ./config/envoi.yml
-envoi exec -- node app.js --config ./config/envoi.yml
-
-# Enable verbose output to watch your messenger work
-envoi exec "npm test" --verbose
-envoi exec -- npm test --verbose
-```
-
-### Default Command Configuration
-
-Envoi allows you to define a default command in your `envoi.yml` file that will be used when no command-line arguments are provided:
-
-```yaml
-# envoi.yml
-command:
-  default: "npm start"
-  description: "Start the development server"
-```
-
-Usage with default command:
-```bash
-# Uses default command from envoi.yml
-envoi exec
-
-# Override with command-line arguments (higher priority)
-envoi exec "node server.js"
-envoi exec -- node server.js --port 3000
-```
-
-**Command Priority**: command-line arguments > default command in envoi.yml > error if no command specified
-
-### Listing Environment Variables
-
-```bash
-# Show all resolved environment variables with colorized output
-# Also displays the default command configuration if defined in envoi.yml
-envoi env
-
-# Use custom configuration file
-envoi env --config ./config/envoi.yml
-```
-
-### Environment Variables
-
-`envoi` will resolve variables in this order:
-
-1. **Existing Environment Variables**: Already set in the environment
-2. **Configured Sources**: From `.env` files or Vault
-3. **Default Values**: Specified in `envoi.yml`
-
-### Colored Logging
-
-`envoi` features beautiful colorized output to improve user experience:
-
-- 🔵 **Blue**: Information messages (configuration loading, command execution)
-- 🟡 **Yellow**: Warning messages (missing dependencies, configuration issues)
-- 🔴 **Red**: Error messages (validation failures, execution errors)
-- ⚫ **Gray**: Debug messages (verbose mode details)
-- 🟢 **Green**: Success messages
-- 🔵 **Cyan**: Environment variable names in listings
-
-**Watch Your Messenger Work:**
-```bash
-$ envoi exec -- npm start --verbose
-⚠ Vault provider not registered. Ensure dependencies are installed if you plan to use Vault.
-ℹ Loading configuration from: ./envoi.yml
-ℹ Executing command: npm start
-🐛 Resolved variables:
-  DATABASE_URL: local:DB_URL
-  API_KEY: local:EXTERNAL_API_KEY
-  NODE_ENV: default
-🐛 Executing: npm start
-```
-
-**Environment Variable Listing:**
-```bash
-$ envoi env
-envoi environment variables:
-
-  DATABASE_URL:  postgresql://user:password@localhost:5432/mydb (local:DB_URL)
-  API_KEY:       sk-your-api-key-here (local:EXTERNAL_API_KEY)
-  NODE_ENV:      development (default)
-  PORT:          3000 (default)
-
-Default Command:
-
-  npm start - Start the application server
-```
+-----
 
 ## Examples
 
@@ -263,14 +211,11 @@ Default Command:
 # envoi.yml
 variables:
   - name: NODE_ENV
-    required: false
     default: "development"
   - name: PORT
-    required: false
     default: "3000"
   - name: DATABASE_URL
     required: true
-
 sources:
   DATABASE_URL:
     type: local
@@ -289,13 +234,11 @@ DEV_DATABASE_URL=postgresql://localhost:5432/myapp_dev
 # envoi.yml
 variables:
   - name: NODE_ENV
-    required: false
     default: "production"
   - name: DATABASE_URL
     required: true
   - name: API_KEY
     required: true
-
 sources:
   DATABASE_URL:
     type: vault
@@ -309,94 +252,58 @@ sources:
 
 ```bash
 # Set up Vault authentication
-export VAULT_TOKEN="your-vault-token"
-export VAULT_ADDR="https://vault.yourcompany.com"
+export VAULT_TOKEN="..."
+export VAULT_ADDR="..."
 
 # Run with production configuration
-envoi exec "npm start"
+envoi exec -- npm start
 ```
 
-## Error Handling
-
-`envoi` provides clear error messages for common issues:
-
-```bash
-# Missing required variable
-❌ Required variable 'DATABASE_URL' was not found. Please define it in your environment or configure a source in envoi.yml.
-
-# Configuration file not found
-❌ Configuration file not found: ./envoi.yml
-
-# Invalid YAML
-❌ Invalid YAML in configuration file: ...
-```
-
-## Security
-
-- **No Secret Caching**: Variables are loaded directly into memory and never written to disk
-- **Runtime Resolution**: Secrets are fetched only when needed
-- **Environment Variables**: `envoi` never overwrites existing environment variables without explicit configuration
+-----
 
 ## Development
 
-### Building
+  - **Build:** `npm run build`
+  - **Test:** `npm test` or `npm run test:watch`
+  - **Lint:** `npm run lint` or `npm run lint:fix`
 
-```bash
-npm run build
-```
-
-### Testing
-
-```bash
-npm test
-npm run test:watch
-```
-
-### Linting
-
-```bash
-npm run lint
-npm run lint:fix
-```
+-----
 
 ## Version History
 
-### v1.0 (MVP)
-- CLI framework with Commander.js
-- `envoi.yml` configuration file support
-- Local provider for `.env` files
-- Variable validation and error handling
-- Subprocess execution with environment injection
-
-### v1.1
-- HashiCorp Vault provider integration
-- Token-based authentication
-- Secure secret management
+The detailed version history is available in the `CHANGELOG.md` file.
 
 ### v1.3 (Latest)
-- **Default Command Configuration**: Set default commands in `envoi.yml` with command-line override capability
-- **Command Priority Logic**: Command-line arguments override default commands, providing flexible execution workflows
-- **Enhanced CLI Help**: Updated documentation and examples for command configuration feature
-- **Comprehensive Testing**: Added integration tests for command parsing and priority logic
-- **Improved Error Messages**: Clear feedback when no command is specified in configuration or command line
-- **Enhanced Environment Listing**: The `env` command now displays default command configuration from `envoi.yml` when available
+
+  - **Default Command Configuration** & Priority Logic.
+  - Enhanced CLI Help and `envoi env` output.
+  - Comprehensive integration testing.
 
 ### v1.2
-- **Flexible Command Syntax**: Added support for `--` separator in `envoi exec` commands
-- **Colored Logging**: Beautiful colorized output with clear visual hierarchy
-- **Centralized Logger**: Unified logging system with configurable debug output
-- **Enhanced Error Handling**: Better error messages with context and color coding
-- **Improved UX**: Environment variable listings with color-coded sources
+
+  - **Flexible `--` Command Syntax** added.
+  - **Colored Logging** for improved UX.
+  - Centralized logger and enhanced error handling.
+
+### v1.1
+
+  - **HashiCorp Vault Provider** integration.
+  - Token-based authentication for Vault.
+
+### v1.0 (MVP)
+
+  - Initial release with `envoi.yml` support and local `.env` provider.
+
+-----
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Run the test suite
-6. Submit a pull request
+1.  Fork the repository.
+2.  Create a feature branch (`git checkout -b feature/amazing-feature`).
+3.  Make your changes and add tests.
+4.  Ensure all tests pass (`npm test`).
+5.  Submit a pull request.
 
 ## License
 
-MIT License - see LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
