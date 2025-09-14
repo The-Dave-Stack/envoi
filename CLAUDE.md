@@ -40,6 +40,13 @@ cp envoi.example.yml envoi.yml
 cp .env.example .env
 node dist/index.js exec "node -e \"console.log(process.env.DATABASE_URL)\""
 node dist/index.js exec -- node -e "console.log(process.env.DATABASE_URL)"
+
+# Test default command configuration
+node dist/index.js exec  # Uses default command from envoi.yml
+node dist/index.js exec "node server.js"  # Override default command
+
+# Test env command with command configuration display
+node dist/index.js env  # Shows variables and default command if configured
 ```
 
 ### Colored Logging
@@ -105,6 +112,37 @@ interface Provider {
 `envoi.yml` defines:
 - `variables`: Array of variable definitions with metadata
 - `sources`: Mapping of variable names to provider configurations
+- `command`: Optional default command configuration with override capability
+
+### Command Configuration
+
+Envoi supports defining a default command in `envoi.yml` that can be overridden by command-line arguments:
+
+```yaml
+# envoi.yml
+variables:
+  - name: NODE_ENV
+    required: false
+    default: "development"
+
+command:
+  default: "npm start"
+  description: "Start the development server"
+```
+
+Usage:
+```bash
+# Uses default command from envoi.yml
+envoi exec
+
+# Override with command-line arguments
+envoi exec "node server.js"
+envoi exec -- node server.js --port 3000
+```
+
+**Command Priority**: command-line arguments > default command in envoi.yml > error if no command specified
+
+**Environment Variable Display**: The `env` command now also shows the default command configuration from `envoi.yml` when available, providing a complete view of the configuration setup.
 
 Example sources configuration:
 ```yaml

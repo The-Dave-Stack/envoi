@@ -23,3 +23,13 @@ sources:
     type: local
     file: .env
     key: EXTERNAL_API_KEY
+  # Example for Vault integration (v1.1)
+  # SECRET_TOKEN:
+  #   type: vault
+  #   path: secret/data/myapp
+  #   key: api_token
+
+# Default command to execute when no command-line arguments are provided
+command:
+  default: "npm run envoi:test"
+  description: "Test the envoi default command"

@@ -28,3 +28,8 @@ sources:
   #   type: vault
   #   path: secret/data/myapp
   #   key: api_token
+
+# Default command to execute when no command-line arguments are provided
+command:
+  default: "npm start"
+  description: "Start the application server"

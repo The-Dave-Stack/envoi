@@ -11,6 +11,7 @@ Environment-agnostic configuration orchestrator for consistent application deplo
 
 - **Single Source of Truth**: Define all required environment variables in `envoi.yml`
 - **Multiple Providers**: Support for `.env` files and HashiCorp Vault
+- **Default Command Configuration**: Set default commands in `envoi.yml` with command-line override capability
 - **Flexible Command Syntax**: Use both `envoi exec "command"` and `envoi exec -- command` formats
 - **Colored Logging**: Beautiful colorized output with clear visual hierarchy
 - **Validation**: Ensure required variables are present before execution
@@ -20,18 +21,6 @@ Environment-agnostic configuration orchestrator for consistent application deplo
 ## About the Name
 
 **Envoi**: A variant of "Envoy" (messenger) - An agent that delivers configuration to processes.
-
-### Why "Envoi" is the Perfect Name
-
-- **Sonido & Elegancia**: Es corto, fácil de pronunciar y tiene un aire sofisticado y moderno gracias a su origen francés.
-
-- **Perfect Metaphor**: Like a diplomatic envoy who delivers important messages securely, envoi ensures your configuration and secrets are safely delivered to your processes. The metaphor perfectly captures the tool's purpose: acting as a trusted agent for configuration transport.
-
-- **CLI-Friendly**: The name is quick to type (`envoi exec ...`) has excellent command-line ergonomics, and is memorable for daily development workflows.
-
-- **Brandable**: Not a generic name, giving you strong potential for visual identity and brand development around the project.
-
-The name reflects both elegance and purpose - envoi doesn't just manage configuration, it delivers it with the care and importance of a diplomatic mission.
 
 ## Installation
 
@@ -65,6 +54,11 @@ sources:
     type: local
     file: .env
     key: EXTERNAL_API_KEY
+
+# Default command to execute when no command-line arguments are provided
+command:
+  default: "npm start"
+  description: "Start the application server"
 ```
 
 2. Create a `.env` file:
@@ -127,6 +121,10 @@ sources:
     type: local                  # Provider type: 'local' or 'vault'
     file: .env                  # For local provider: .env file path
     key: ENV_KEY                # Key to look up in the source
+
+command:                          # Optional default command configuration
+  default: "npm start"           # Default command to execute
+  description: "Start server"    # Description of the default command
 ```
 
 ### Providers
@@ -176,10 +174,34 @@ envoi exec "npm test" --verbose
 envoi exec -- npm test --verbose
 ```
 
+### Default Command Configuration
+
+Envoi allows you to define a default command in your `envoi.yml` file that will be used when no command-line arguments are provided:
+
+```yaml
+# envoi.yml
+command:
+  default: "npm start"
+  description: "Start the development server"
+```
+
+Usage with default command:
+```bash
+# Uses default command from envoi.yml
+envoi exec
+
+# Override with command-line arguments (higher priority)
+envoi exec "node server.js"
+envoi exec -- node server.js --port 3000
+```
+
+**Command Priority**: command-line arguments > default command in envoi.yml > error if no command specified
+
 ### Listing Environment Variables
 
 ```bash
 # Show all resolved environment variables with colorized output
+# Also displays the default command configuration if defined in envoi.yml
 envoi env
 
 # Use custom configuration file
@@ -216,6 +238,21 @@ $ envoi exec -- npm start --verbose
   API_KEY: local:EXTERNAL_API_KEY
   NODE_ENV: default
 🐛 Executing: npm start
+```
+
+**Environment Variable Listing:**
+```bash
+$ envoi env
+envoi environment variables:
+
+  DATABASE_URL:  postgresql://user:password@localhost:5432/mydb (local:DB_URL)
+  API_KEY:       sk-your-api-key-here (local:EXTERNAL_API_KEY)
+  NODE_ENV:      development (default)
+  PORT:          3000 (default)
+
+Default Command:
+
+  npm start - Start the application server
 ```
 
 ## Examples
@@ -336,7 +373,15 @@ npm run lint:fix
 - Token-based authentication
 - Secure secret management
 
-### v1.2 (Latest)
+### v1.3 (Latest)
+- **Default Command Configuration**: Set default commands in `envoi.yml` with command-line override capability
+- **Command Priority Logic**: Command-line arguments override default commands, providing flexible execution workflows
+- **Enhanced CLI Help**: Updated documentation and examples for command configuration feature
+- **Comprehensive Testing**: Added integration tests for command parsing and priority logic
+- **Improved Error Messages**: Clear feedback when no command is specified in configuration or command line
+- **Enhanced Environment Listing**: The `env` command now displays default command configuration from `envoi.yml` when available
+
+### v1.2
 - **Flexible Command Syntax**: Added support for `--` separator in `envoi exec` commands
 - **Colored Logging**: Beautiful colorized output with clear visual hierarchy
 - **Centralized Logger**: Unified logging system with configurable debug output

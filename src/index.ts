@@ -25,12 +25,12 @@ const program = new Command();
 
 program
   .name('envoi')
-  .description('Environment-agnostic configuration orchestrator\n\nLoad environment variables from multiple sources (.env files, HashiCorp Vault) and execute commands with injected configuration.\n\nExamples:\n  envoi exec "node server.js"\n  envoi exec -- node server.js\n  envoi env\n  envoi exec "echo $DATABASE_URL" --verbose')
+  .description('Environment-agnostic configuration orchestrator\n\nLoad environment variables from multiple sources (.env files, HashiCorp Vault) and execute commands with injected configuration.\nConfigure default commands in envoi.yml and override them with command-line arguments.\n\nExamples:\n  envoi exec                    # Uses default command from envoi.yml\n  envoi exec "node server.js"   # Override with command line\n  envoi exec -- node server.js  # New -- separator syntax\n  envoi env\n  envoi exec "echo $DATABASE_URL" --verbose')
   .version('1.0.0');
 
 program
   .command('exec', { isDefault: true })
-  .description('Execute a command with injected environment variables\n\nLoads variables from configured sources (.env files, HashiCorp Vault) and injects them into the command environment.\nVariables are resolved in order: existing env → configured sources → defaults.\n\nExamples:\n  envoi exec "node server.js"\n  envoi exec -- node server.js\n  envoi exec "npm start" --config ./config/envoi.yml\n  envoi exec -- npm start --config ./config/envoi.yml\n  envoi exec "echo $DATABASE_URL" --verbose')
+  .description('Execute a command with injected environment variables\n\nLoads variables from configured sources (.env files, HashiCorp Vault) and injects them into the command environment.\nVariables are resolved in order: existing env → configured sources → defaults.\n\nIf no command is provided via command line, uses the default command from envoi.yml.\nCommand line arguments override the default configuration.\n\nExamples:\n  envoi exec                    # Uses default command from envoi.yml\n  envoi exec "node server.js"   # Override with command line\n  envoi exec -- node server.js  # New -- separator syntax\n  envoi exec "npm start" --config ./config/envoi.yml\n  envoi exec -- npm start --config ./config/envoi.yml\n  envoi exec "echo $DATABASE_URL" --verbose')
   .allowUnknownOption()
   .option('-c, --config <path>', 'Path to envoi.yml configuration file (default: "./envoi.yml")', './envoi.yml')
   .option('-v, --verbose', 'Enable verbose output showing variable resolution process', false)
@@ -39,7 +39,7 @@ program
       const rawArgs = command.args;
       const separatorIndex = rawArgs.indexOf('--');
       
-      let fullCommand: string;
+      let fullCommand: string | undefined;
       
       if (separatorIndex !== -1) {
         // New syntax: envoi exec -- node server.js
@@ -48,8 +48,20 @@ program
       } else if (rawArgs.length > 0) {
         // Old syntax: envoi exec "node server.js"
         fullCommand = rawArgs.join(' ');
-      } else {
-        throw new EnvoiError('No command specified. Use: envoi exec -- <command> or envoi exec "<command>"');
+      }
+      
+      const config = await loadConfig(options.config);
+      
+      // If no command-line command provided, use default from config
+      if (!fullCommand) {
+        if (config.command?.default) {
+          fullCommand = config.command.default;
+          if (options.verbose) {
+            Logger.info(`Using default command from envoi.yml: ${fullCommand}`);
+          }
+        } else {
+          throw new EnvoiError('No command specified. Either provide a command via command line or define a default command in envoi.yml. Use: envoi exec -- <command> or envoi exec "<command>"');
+        }
       }
       
       if (options.verbose) {
@@ -57,7 +69,6 @@ program
         Logger.info(`Executing command: ${fullCommand}`);
       }
 
-      const config = await loadConfig(options.config);
       await resolveAndExecute(config, fullCommand, options.verbose);
     } catch (error) {
       if (error instanceof EnvoiError) {
@@ -72,7 +83,7 @@ program
 
 program
   .command('env')
-  .description('Show loaded environment variables and their sources\n\nDisplays all resolved environment variables with their values and where they were loaded from.\nSource information shows: "environment" (existing env vars), "local:KEY" (.env files), "vault:PATH" (HashiCorp Vault), or "default".\n\nExamples:\n  envoi env\n  envoi env --config ./config/envoi.yml')
+  .description('Show loaded environment variables and their sources\n\nDisplays all resolved environment variables with their values and where they were loaded from.\nSource information shows: "environment" (existing env vars), "local:KEY" (.env files), "vault:PATH" (HashiCorp Vault), or "default".\nAlso shows the default command configuration if defined in envoi.yml.\n\nExamples:\n  envoi env\n  envoi env --config ./config/envoi.yml')
   .option('-c, --config <path>', 'Path to envoi.yml configuration file (default: "./envoi.yml")', './envoi.yml')
   .action(async (options) => {
     try {
@@ -92,6 +103,19 @@ program
       resolvedVariables.forEach(variable => {
         Logger.variable(variable.name, variable.value, variable.source, maxNameLength + 2);
       });
+
+      // Show command configuration if it exists
+      if (config.command?.default) {
+        Logger.blank();
+        Logger.header('Default Command:');
+        Logger.blank();
+        
+        const commandInfo = config.command.description 
+          ? `${config.command.default} - ${config.command.description}`
+          : config.command.default;
+        
+        Logger.plain(`  ${commandInfo}`);
+      }
     } catch (error) {
       if (error instanceof EnvoiError) {
         Logger.error(error.message);

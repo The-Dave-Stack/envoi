@@ -14,13 +14,20 @@ const VariableSourceSchema = z.object({
   path: z.string().optional(),
 });
 
+const CommandConfigSchema = z.object({
+  default: z.string().optional(),
+  description: z.string().optional(),
+});
+
 const EnvoiConfigSchema = z.object({
   variables: z.array(VariableDefinitionSchema),
   sources: z.record(VariableSourceSchema).optional(),
+  command: CommandConfigSchema.optional(),
 });
 
 export type VariableDefinition = z.infer<typeof VariableDefinitionSchema>;
 export type VariableSource = z.infer<typeof VariableSourceSchema>;
+export type CommandConfig = z.infer<typeof CommandConfigSchema>;
 export type EnvoiConfig = z.infer<typeof EnvoiConfigSchema>;
 
 export function validateConfig(data: unknown): EnvoiConfig {

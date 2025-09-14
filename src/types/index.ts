@@ -12,9 +12,15 @@ export interface VariableSource {
   path?: string | undefined; // For vault type
 }
 
+export interface CommandConfig {
+  default?: string | undefined;
+  description?: string | undefined;
+}
+
 export interface EnvoiConfig {
   variables: VariableDefinition[];
   sources?: Record<string, VariableSource> | undefined;
+  command?: CommandConfig | undefined;
 }
 
 export interface ResolvedVariable {
