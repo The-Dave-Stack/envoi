@@ -1,4 +1,9 @@
-import * as vaultModule from 'node-vault';
+// Note: node-vault is optional dependency
+try {
+  var vaultModule = require('node-vault');
+} catch (e) {
+  // Module not available
+}
 import { Provider, VariableSource } from '../types';
 import { ProviderError } from '../utils/errors';
 
@@ -15,6 +20,12 @@ export class VaultProvider implements Provider {
     if (!token) {
       throw new ProviderError(
         'VAULT_TOKEN environment variable is required for Vault provider'
+      );
+    }
+
+    if (!vaultModule) {
+      throw new ProviderError(
+        'Vault provider requires node-vault dependency. Install it with: npm install node-vault'
       );
     }
 

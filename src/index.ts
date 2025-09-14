@@ -6,6 +6,7 @@ import { Command } from 'commander';
 import { EnvoiError } from './utils/errors';
 import { LocalProvider } from './providers/local';
 import { VaultProvider } from './providers/vault';
+import { OpenBaoProvider } from './providers/openbao';
 import { loadConfig } from './config/loader';
 import { providerRegistry } from './providers/registry';
 import { Logger } from './utils/logger';
@@ -21,16 +22,24 @@ try {
   Logger.warn('Vault provider not registered. Ensure dependencies are installed if you plan to use Vault.');
 }
 
+// Register OpenBao provider if dependencies are available
+try {
+  providerRegistry.register(new OpenBaoProvider());
+} catch (error) {
+  // OpenBao provider requires optional dependencies, fail gracefully
+  Logger.warn('OpenBao provider not registered. Ensure dependencies are installed if you plan to use OpenBao.');
+}
+
 const program = new Command();
 
 program
   .name('envoi')
-  .description('Environment-agnostic configuration orchestrator\n\nLoad environment variables from multiple sources (.env files, HashiCorp Vault) and execute commands with injected configuration.\nConfigure default commands in envoi.yml and override them with command-line arguments.\n\nExamples:\n  envoi exec                    # Uses default command from envoi.yml\n  envoi exec "node server.js"   # Override with command line\n  envoi exec -- node server.js  # New -- separator syntax\n  envoi env\n  envoi exec "echo $DATABASE_URL" --verbose')
+  .description('Environment-agnostic configuration orchestrator\n\nLoad environment variables from multiple sources (.env files, HashiCorp Vault, OpenBao) and execute commands with injected configuration.\nConfigure default commands in envoi.yml and override them with command-line arguments.\n\nExamples:\n  envoi exec                    # Uses default command from envoi.yml\n  envoi exec "node server.js"   # Override with command line\n  envoi exec -- node server.js  # New -- separator syntax\n  envoi env\n  envoi exec "echo $DATABASE_URL" --verbose')
   .version('1.0.0');
 
 program
   .command('exec', { isDefault: true })
-  .description('Execute a command with injected environment variables\n\nLoads variables from configured sources (.env files, HashiCorp Vault) and injects them into the command environment.\nVariables are resolved in order: existing env → configured sources → defaults.\n\nIf no command is provided via command line, uses the default command from envoi.yml.\nCommand line arguments override the default configuration.\n\nExamples:\n  envoi exec                    # Uses default command from envoi.yml\n  envoi exec "node server.js"   # Override with command line\n  envoi exec -- node server.js  # New -- separator syntax\n  envoi exec "npm start" --config ./config/envoi.yml\n  envoi exec -- npm start --config ./config/envoi.yml\n  envoi exec "echo $DATABASE_URL" --verbose')
+  .description('Execute a command with injected environment variables\n\nLoads variables from configured sources (.env files, HashiCorp Vault, OpenBao) and injects them into the command environment.\nVariables are resolved in order: existing env → configured sources → defaults.\n\nIf no command is provided via command line, uses the default command from envoi.yml.\nCommand line arguments override the default configuration.\n\nExamples:\n  envoi exec                    # Uses default command from envoi.yml\n  envoi exec "node server.js"   # Override with command line\n  envoi exec -- node server.js  # New -- separator syntax\n  envoi exec "npm start" --config ./config/envoi.yml\n  envoi exec -- npm start --config ./config/envoi.yml\n  envoi exec "echo $DATABASE_URL" --verbose')
   .allowUnknownOption()
   .option('-c, --config <path>', 'Path to envoi.yml configuration file (default: "./envoi.yml")', './envoi.yml')
   .option('-v, --verbose', 'Enable verbose output showing variable resolution process', false)
@@ -83,7 +92,7 @@ program
 
 program
   .command('env')
-  .description('Show loaded environment variables and their sources\n\nDisplays all resolved environment variables with their values and where they were loaded from.\nSource information shows: "environment" (existing env vars), "local:KEY" (.env files), "vault:PATH" (HashiCorp Vault), or "default".\nAlso shows the default command configuration if defined in envoi.yml.\n\nExamples:\n  envoi env\n  envoi env --config ./config/envoi.yml')
+  .description('Show loaded environment variables and their sources\n\nDisplays all resolved environment variables with their values and where they were loaded from.\nSource information shows: "environment" (existing env vars), "local:KEY" (.env files), "vault:PATH" (HashiCorp Vault), "openbao:PATH" (OpenBao), or "default".\nAlso shows the default command configuration if defined in envoi.yml.\n\nExamples:\n  envoi env\n  envoi env --config ./config/envoi.yml')
   .option('-c, --config <path>', 'Path to envoi.yml configuration file (default: "./envoi.yml")', './envoi.yml')
   .action(async (options) => {
     try {

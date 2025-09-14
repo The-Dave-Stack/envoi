@@ -1,26 +1,58 @@
+providers:
+  local:
+    type: local
+    enabled: true
+    config:
+      file: .env
+  
+  openbao:
+    type: openbao
+    enabled: true
+    config:
+      address: "http://localhost:8200"
+      token: "${OPENBAO_TOKEN}"
+
 variables:
-  - name: ANTHROPIC_BASE_URL
+  - name: DATABASE_URL
     required: true
-    description: "Claude Code API base URL"
-  - name: ANTHROPIC_AUTH_TOKEN
+    description: "Database connection string"
+  - name: API_KEY
     required: true
-    description: "Claude Code API authentication token"
-  - name: DOKPLOY_API_KEY
-    required: true
-    description: "Dokploy API key for TDS"
+    description: "API key for external service"
+  - name: NODE_ENV
+    required: false
+    default: "development"
+    description: "Node.js environment"
+  - name: SECRET_TOKEN
+    required: false
+    description: "Secret token from OpenBao"
+  - name: PORT
+    required: false
+    default: "3000"
+    description: "Server port"
 
 sources:
-  ANTHROPIC_BASE_URL:
+  DATABASE_URL:
     type: local
     file: .env
-  ANTHROPIC_AUTH_TOKEN:
+    key: DB_URL
+  API_KEY:
     type: local
     file: .env
-  DOKPLOY_API_KEY:
-    type: local
-    file: .env
+    key: EXTERNAL_API_KEY
+  # Example for OpenBao integration (v1.1)
+  SECRET_TOKEN:
+    type: openbao
+    path: secret/data/myapp
+    key: secret_key
+  # 
+  # Example for Vault integration (v1.1)
+  # LEGACY_TOKEN:
+  #   type: vault
+  #  path: secret/data/myapp
+  #   key: api_token
 
 # Default command to execute when no command-line arguments are provided
 command:
-  default: "claude"
-  description: "Run Claude Code"
+  default: "npm run envoi:test"
+  description: "Test the envoi default command"

@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    container_name: envoi-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: openbao
+      POSTGRES_USER: openbao
+      POSTGRES_PASSWORD: openbao_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openbao -d openbao"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  openbao:
+    image: openbao/openbao:latest
+    container_name: envoi-openbao
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      OPENBAO_DEV_ROOT_TOKEN_ID: "dev-only-token"
+      OPENBAO_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+      OPENBAO_STORAGE_POSTGRES_CONNECTION_URL: "postgres://openbao:openbao_password@postgres:5432/openbao?sslmode=disable"
+      OPENBAO_STORAGE_POSTGRES_TABLE: "vault_kv_store"
+      OPENBAO_STORAGE_POSTGRES_MAX_OPEN_CONNECTIONS: "10"
+      OPENBAO_STORAGE_POSTGRES_MAX_IDLE_CONNECTIONS: "2"
+      OPENBAO_STORAGE_POSTGRES_CONNECTION_TIMEOUT: "30s"
+    ports:
+      - "8200:8200"
+    volumes:
+      - openbao_data:/vault/file
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8200/v1/sys/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+  openbao_data:
+
+networks:
+  default:
+    name: envoi-network

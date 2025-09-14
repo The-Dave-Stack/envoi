@@ -1,28 +1,3 @@
-export interface VariableDefinition {
-  name: string;
-  required?: boolean | undefined;
-  default?: string | undefined;
-  description?: string | undefined;
-}
-
-export interface VariableSource {
-  type: 'local' | 'vault';
-  file?: string | undefined; // For local type
-  key?: string | undefined; // If not provided, uses variable name
-  path?: string | undefined; // For vault type
-}
-
-export interface CommandConfig {
-  default?: string | undefined;
-  description?: string | undefined;
-}
-
-export interface EnvoiConfig {
-  variables: VariableDefinition[];
-  sources?: Record<string, VariableSource> | undefined;
-  command?: CommandConfig | undefined;
-}
-
 export interface ResolvedVariable {
   name: string;
   value: string;
@@ -31,5 +6,15 @@ export interface ResolvedVariable {
 
 export interface Provider {
   name: string;
-  resolve(source: VariableSource): Promise<string>;
+  resolve(source: import('../config/schema').VariableSource): Promise<string>;
 }
+
+// Re-export types from schema to maintain consistency
+export type {
+  VariableDefinition,
+  VariableSource,
+  CommandConfig,
+  ProviderConfig,
+  ProvidersConfig,
+  EnvoiConfig,
+} from '../config/schema';
