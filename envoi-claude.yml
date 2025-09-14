@@ -1,0 +1,26 @@
+variables:
+  - name: ANTHROPIC_BASE_URL
+    required: true
+    description: "Claude Code API base URL"
+  - name: ANTHROPIC_AUTH_TOKEN
+    required: true
+    description: "Claude Code API authentication token"
+  - name: DOKPLOY_API_KEY
+    required: true
+    description: "Dokploy API key for TDS"
+
+sources:
+  ANTHROPIC_BASE_URL:
+    type: local
+    file: .env
+  ANTHROPIC_AUTH_TOKEN:
+    type: local
+    file: .env
+  DOKPLOY_API_KEY:
+    type: local
+    file: .env
+
+# Default command to execute when no command-line arguments are provided
+command:
+  default: "claude"
+  description: "Run Claude Code"
