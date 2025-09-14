@@ -1,3 +1,11 @@
+providers:  
+  openbao:
+    type: openbao
+    enabled: true
+    config:
+      address: "${OPENBAO_ADDR}"
+      token: "${OPENBAO_TOKEN}"
+
 variables:
   - name: ANTHROPIC_BASE_URL
     required: true
@@ -11,14 +19,14 @@ variables:
 
 sources:
   ANTHROPIC_BASE_URL:
-    type: local
-    file: .env
+    type: openbao
+    path: secret/local/claude_glm
   ANTHROPIC_AUTH_TOKEN:
-    type: local
-    file: .env
+    type: openbao
+    path: secret/local/claude_glm
   DOKPLOY_API_KEY:
-    type: local
-    file: .env
+    type: openbao
+    path: secret/local/mcp_envs
 
 # Default command to execute when no command-line arguments are provided
 command:
