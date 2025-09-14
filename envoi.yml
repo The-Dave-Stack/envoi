@@ -1,35 +1,26 @@
 variables:
-  - name: DATABASE_URL
+  - name: ANTHROPIC_BASE_URL
     required: true
-    description: "Database connection string"
-  - name: API_KEY
+    description: "Claude Code API base URL"
+  - name: ANTHROPIC_AUTH_TOKEN
     required: true
-    description: "API key for external service"
-  - name: NODE_ENV
-    required: false
-    default: "development"
-    description: "Node.js environment"
-  - name: PORT
-    required: false
-    default: "3000"
-    description: "Server port"
+    description: "Claude Code API authentication token"
+  - name: DOKPLOY_API_KEY
+    required: true
+    description: "Dokploy API key for TDS"
 
 sources:
-  DATABASE_URL:
+  ANTHROPIC_BASE_URL:
     type: local
     file: .env
-    key: DB_URL
-  API_KEY:
+  ANTHROPIC_AUTH_TOKEN:
     type: local
     file: .env
-    key: EXTERNAL_API_KEY
-  # Example for Vault integration (v1.1)
-  # SECRET_TOKEN:
-  #   type: vault
-  #   path: secret/data/myapp
-  #   key: api_token
+  DOKPLOY_API_KEY:
+    type: local
+    file: .env
 
 # Default command to execute when no command-line arguments are provided
 command:
-  default: "npm run envoi:test"
-  description: "Test the envoi default command"
+  default: "claude"
+  description: "Run Claude Code"

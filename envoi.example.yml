@@ -31,5 +31,5 @@ sources:
 
 # Default command to execute when no command-line arguments are provided
 command:
-  default: "npm start"
-  description: "Start the application server"
+  default: "npm run envoi:test"
+  description: "Test the envoi default command"
