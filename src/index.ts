@@ -4,31 +4,11 @@ import { resolveAndExecute, resolveVariables } from './core/resolver';
 
 import { Command } from 'commander';
 import { EnvoiError } from './utils/errors';
-import { LocalProvider } from './providers/local';
-import { VaultProvider } from './providers/vault';
-import { OpenBaoProvider } from './providers/openbao';
+import { Logger } from './utils/logger';
+import { filterDisabledProviders } from './utils/provider-filter';
 import { loadConfig } from './config/loader';
 import { providerRegistry } from './providers/registry';
-import { Logger } from './utils/logger';
-
-// Register built-in providers
-providerRegistry.register(new LocalProvider());
-
-// Register Vault provider if dependencies are available
-try {
-  providerRegistry.register(new VaultProvider());
-} catch (error) {
-  // Vault provider requires optional dependencies, fail gracefully
-  Logger.warn('Vault provider not registered. Ensure dependencies are installed if you plan to use Vault.');
-}
-
-// Register OpenBao provider if dependencies are available
-try {
-  providerRegistry.register(new OpenBaoProvider());
-} catch (error) {
-  // OpenBao provider requires optional dependencies, fail gracefully
-  Logger.warn('OpenBao provider not registered. Ensure dependencies are installed if you plan to use OpenBao.');
-}
+import { registerProvidersFromConfig } from './providers/dynamic-registration';
 
 const program = new Command();
 
@@ -44,6 +24,8 @@ program
   .option('-c, --config <path>', 'Path to envoi.yml configuration file (default: "./envoi.yml")', './envoi.yml')
   .option('-v, --verbose', 'Enable verbose output showing variable resolution process', false)
   .action(async (options, command) => {
+    Logger.setDebug(options.verbose);
+    Logger.debug('Starting exec command');
     try {
       const rawArgs = command.args;
       const separatorIndex = rawArgs.indexOf('--');
@@ -59,7 +41,29 @@ program
         fullCommand = rawArgs.join(' ');
       }
       
-      const config = await loadConfig(options.config);
+      // Load configuration first to determine which providers to register
+      let config;
+      try {
+        config = await loadConfig(options.config);
+      } catch (error) {
+        console.error('Config loading error:', error);
+        throw error;
+      }
+      
+      if (options.verbose) {
+        Logger.info(`Loaded configuration from ${options.config}`);
+      }
+      
+      // Register providers based on configuration
+      registerProvidersFromConfig(config, options.verbose);
+      
+      // Filter out sources and variables for disabled providers
+      const filteredConfig = filterDisabledProviders(config);
+      
+      if (options.verbose) {
+        Logger.info(`Registered providers: ${providerRegistry.getRegisteredProviders().join(', ')}`);
+        Logger.info(`Filtered configuration to ${filteredConfig.variables.length} variables from ${config.variables.length} total`);
+      }
       
       // If no command-line command provided, use default from config
       if (!fullCommand) {
@@ -78,13 +82,14 @@ program
         Logger.info(`Executing command: ${fullCommand}`);
       }
 
-      await resolveAndExecute(config, fullCommand, options.verbose);
+      await resolveAndExecute(filteredConfig, fullCommand, options.verbose);
     } catch (error) {
       if (error instanceof EnvoiError) {
         Logger.error(error.message);
         process.exit(1);
       } else {
         Logger.errorWithContext('An unexpected error occurred:', error);
+        console.error('Full error:', error);
         process.exit(1);
       }
     }
@@ -94,10 +99,25 @@ program
   .command('env')
   .description('Show loaded environment variables and their sources\n\nDisplays all resolved environment variables with their values and where they were loaded from.\nSource information shows: "environment" (existing env vars), "local:KEY" (.env files), "vault:PATH" (HashiCorp Vault), "openbao:PATH" (OpenBao), or "default".\nAlso shows the default command configuration if defined in envoi.yml.\n\nExamples:\n  envoi env\n  envoi env --config ./config/envoi.yml')
   .option('-c, --config <path>', 'Path to envoi.yml configuration file (default: "./envoi.yml")', './envoi.yml')
+  .option('-v, --verbose', 'Enable verbose output showing variable resolution process', false)
   .action(async (options) => {
+    Logger.setDebug(options.verbose);
+    Logger.debug('Starting env command');
     try {
       const config = await loadConfig(options.config);
-      const resolvedVariables = await resolveVariables(config);
+      
+      // Register providers based on configuration
+      registerProvidersFromConfig(config, options.verbose);
+      
+      // Filter out sources and variables for disabled providers
+      const filteredConfig = filterDisabledProviders(config);
+      
+      if (options.verbose) {
+        Logger.info(`Registered providers: ${providerRegistry.getRegisteredProviders().join(', ')}`);
+        Logger.info(`Filtered configuration to ${filteredConfig.variables.length} variables from ${config.variables.length} total`);
+      }
+      
+      const resolvedVariables = await resolveVariables(filteredConfig, options.verbose);
 
       Logger.header('envoi environment variables:');
       Logger.blank();
@@ -131,6 +151,7 @@ program
         process.exit(1);
       } else {
         Logger.errorWithContext('An unexpected error occurred:', error);
+        console.error('Full error:', error);
         process.exit(1);
       }
     }

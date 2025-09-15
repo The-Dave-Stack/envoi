@@ -106,3 +106,6 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+# Openbao
+unseal

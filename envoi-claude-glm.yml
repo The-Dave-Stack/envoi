@@ -13,20 +13,20 @@ variables:
   - name: ANTHROPIC_AUTH_TOKEN
     required: true
     description: "Claude Code API authentication token"
-  - name: DOKPLOY_API_KEY
+  - name: DOKPLOY_TDS_API_KEY
     required: true
     description: "Dokploy API key for TDS"
 
 sources:
   ANTHROPIC_BASE_URL:
     type: openbao
-    path: secret/local/claude_glm
+    path: secrets/data/claude_glm
   ANTHROPIC_AUTH_TOKEN:
     type: openbao
-    path: secret/local/claude_glm
-  DOKPLOY_API_KEY:
+    path: secrets/data/claude_glm
+  DOKPLOY_TDS_API_KEY:
     type: openbao
-    path: secret/local/mcp_envs
+    path: secrets/data/mcp
 
 # Default command to execute when no command-line arguments are provided
 command:

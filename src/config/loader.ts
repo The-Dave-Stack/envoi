@@ -1,9 +1,11 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'yaml';
-import { validateConfig } from './schema';
+
 import { EnvoiConfig } from '../types';
 import { EnvoiError } from '../utils/errors';
+import { Logger } from '../utils/logger';
+import { validateConfig } from './schema';
 
 export async function loadConfig(configPath: string): Promise<EnvoiConfig> {
   try {
@@ -13,6 +15,7 @@ export async function loadConfig(configPath: string): Promise<EnvoiConfig> {
     
     return validateConfig(data);
   } catch (error) {
+    Logger.errorWithContext('Failed to load configuration:', error);
     if (error instanceof Error) {
       if (error.message.includes('ENOENT')) {
         throw new EnvoiError(`Configuration file not found: ${configPath}`);

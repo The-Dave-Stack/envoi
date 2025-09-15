@@ -11,12 +11,12 @@ export class VaultProvider implements Provider {
   name = 'vault';
   private client?: any;
 
-  constructor() {
-    this.initializeClient();
+  constructor(config?: any) {
+    this.initializeClient(config);
   }
 
-  private initializeClient(): void {
-    const token = process.env.VAULT_TOKEN;
+  private initializeClient(config?: any): void {
+    const token = config?.token || process.env.VAULT_TOKEN;
     if (!token) {
       throw new ProviderError(
         'VAULT_TOKEN environment variable is required for Vault provider'
@@ -32,7 +32,7 @@ export class VaultProvider implements Provider {
     // Use the default export or fallback to the main export
     const vault = (vaultModule as any).default || vaultModule;
     this.client = vault({
-      endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
+      endpoint: config?.address || process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
       token: token,
     });
   }

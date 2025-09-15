@@ -7,9 +7,9 @@ providers:
   
   openbao:
     type: openbao
-    enabled: true
+    enabled: false
     config:
-      address: "http://localhost:8200"
+      address: "${OPENBAO_ADDR}"
       token: "${OPENBAO_TOKEN}"
 
 variables:

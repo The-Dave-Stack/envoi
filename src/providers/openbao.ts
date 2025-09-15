@@ -1,6 +1,7 @@
-import fetch from 'node-fetch';
 import { Provider, VariableSource } from '../types';
+
 import { ProviderError } from '../utils/errors';
+import fetch from 'node-fetch';
 
 interface OpenBaoSecretData {
   data: Record<string, any>;
@@ -15,9 +16,9 @@ export class OpenBaoProvider implements Provider {
   private baseUrl: string;
   private token: string;
 
-  constructor() {
-    this.baseUrl = process.env.OPENBAO_ADDR || 'http://127.0.0.1:8200';
-    this.token = process.env.OPENBAO_TOKEN || '';
+  constructor(config?: any) {
+    this.baseUrl = config?.address || process.env.OPENBAO_ADDR || 'http://127.0.0.1:8200';
+    this.token = config?.token || process.env.OPENBAO_TOKEN || '';
     
     if (!this.token) {
       throw new ProviderError(
