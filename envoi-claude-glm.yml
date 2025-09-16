@@ -1,0 +1,34 @@
+providers:  
+  openbao:
+    type: openbao
+    enabled: true
+    config:
+      address: "${OPENBAO_ADDR}"
+      token: "${OPENBAO_TOKEN}"
+
+variables:
+  - name: ANTHROPIC_BASE_URL
+    required: true
+    description: "Claude Code API base URL"
+  - name: ANTHROPIC_AUTH_TOKEN
+    required: true
+    description: "Claude Code API authentication token"
+  - name: DOKPLOY_TDS_API_KEY
+    required: true
+    description: "Dokploy API key for TDS"
+
+sources:
+  ANTHROPIC_BASE_URL:
+    type: openbao
+    path: secrets/data/claude_glm
+  ANTHROPIC_AUTH_TOKEN:
+    type: openbao
+    path: secrets/data/claude_glm
+  DOKPLOY_TDS_API_KEY:
+    type: openbao
+    path: secrets/data/mcp
+
+# Default command to execute when no command-line arguments are provided
+command:
+  default: "claude"
+  description: "Run Claude Code"

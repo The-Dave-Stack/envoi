@@ -18,6 +18,18 @@ export class ProviderRegistry {
   has(name: string): boolean {
     return this.providers.has(name);
   }
+
+  clear(): void {
+    this.providers.clear();
+  }
+
+  isEmpty(): boolean {
+    return this.providers.size === 0;
+  }
+
+  getRegisteredProviders(): string[] {
+    return Array.from(this.providers.keys());
+  }
 }
 
 export const providerRegistry = new ProviderRegistry();

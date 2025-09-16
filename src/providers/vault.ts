@@ -1,4 +1,9 @@
-import * as vaultModule from 'node-vault';
+// Note: node-vault is optional dependency
+try {
+  var vaultModule = require('node-vault');
+} catch (e) {
+  // Module not available
+}
 import { Provider, VariableSource } from '../types';
 import { ProviderError } from '../utils/errors';
 
@@ -6,22 +11,28 @@ export class VaultProvider implements Provider {
   name = 'vault';
   private client?: any;
 
-  constructor() {
-    this.initializeClient();
+  constructor(config?: any) {
+    this.initializeClient(config);
   }
 
-  private initializeClient(): void {
-    const token = process.env.VAULT_TOKEN;
+  private initializeClient(config?: any): void {
+    const token = config?.token || process.env.VAULT_TOKEN;
     if (!token) {
       throw new ProviderError(
         'VAULT_TOKEN environment variable is required for Vault provider'
       );
     }
 
+    if (!vaultModule) {
+      throw new ProviderError(
+        'Vault provider requires node-vault dependency. Install it with: npm install node-vault'
+      );
+    }
+
     // Use the default export or fallback to the main export
     const vault = (vaultModule as any).default || vaultModule;
     this.client = vault({
-      endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
+      endpoint: config?.address || process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
       token: token,
     });
   }

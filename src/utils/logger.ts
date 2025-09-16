@@ -16,22 +16,22 @@ export class Logger {
   /**
    * Log informational message
    */
-  static info(message: string): void {
-    console.log(chalk.blue('ℹ') + ' ' + chalk.blue(message));
+  static info(message: string, ...optionalParams: unknown[]): void {
+    console.log(chalk.blue('ℹ') + ' ' + chalk.blue(message), ...optionalParams);
   }
 
   /**
    * Log warning message
    */
-  static warn(message: string): void {
-    console.log(chalk.yellow('⚠') + ' ' + chalk.yellow(message));
+  static warn(message: string, ...optionalParams: unknown[]): void {
+    console.log(chalk.yellow('⚠') + ' ' + chalk.yellow(message), ...optionalParams);
   }
 
   /**
    * Log error message
    */
-  static error(message: string): void {
-    console.error(chalk.red('❌') + ' ' + chalk.red(message));
+  static error(message: string, ...optionalParams: unknown[]): void {
+    console.error(chalk.red('❌') + ' ' + chalk.red(message), ...optionalParams);
   }
 
   /**
@@ -47,16 +47,16 @@ export class Logger {
   /**
    * Log success message
    */
-  static success(message: string): void {
-    console.log(chalk.green('✓') + ' ' + chalk.green(message));
+  static success(message: string, ...optionalParams: unknown[]): void {
+    console.log(chalk.green('✓') + ' ' + chalk.green(message), ...optionalParams);
   }
 
   /**
    * Log debug message (only shown when debug is enabled)
    */
-  static debug(message: string): void {
+  static debug(message: string, ...optionalParams: unknown[]): void {
     if (this.debugEnabled) {
-      console.log(chalk.dim('🐛') + ' ' + chalk.dim(message));
+      console.log(chalk.dim('🐛') + ' ' + chalk.dim(message), ...optionalParams);
     }
   }
 

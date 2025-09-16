@@ -1,3 +1,17 @@
+providers:
+  local:
+    type: local
+    enabled: true
+    config:
+      file: .env
+  
+  openbao:
+    type: openbao
+    enabled: true
+    config:
+      address: "http://localhost:8200"
+      token: "${OPENBAO_TOKEN}"
+
 variables:
   - name: DATABASE_URL
     required: true
@@ -23,8 +37,14 @@ sources:
     type: local
     file: .env
     key: EXTERNAL_API_KEY
-  # Example for Vault integration (v1.1)
+  # Example for OpenBao integration (v1.1)
   # SECRET_TOKEN:
+  #   type: openbao
+  #   path: secret/data/myapp
+  #   key: secret_token
+  # 
+  # Example for Vault integration (v1.1)
+  # LEGACY_TOKEN:
   #   type: vault
   #   path: secret/data/myapp
   #   key: api_token

@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    container_name: envoi-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - envoi-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  openbao:
+    image: openbao/openbao:latest
+    container_name: envoi-openbao
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      VAULT_ADDR: "http://127.0.0.1:8200"
+      BAO_API_ADDR: "http://0.0.0.0:8200"
+      BAO_CLUSTER_ADDR: "http://0.0.0.0:8201"
+      BAO_PG_CONNECTION_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+      BAO_PG_TABLE: "vault_kv_store"
+      BAO_PG_MAX_OPEN_CONNECTIONS: "10"
+      BAO_PG_MAX_IDLE_CONNECTIONS: "2"
+      BAO_PG_CONNECTION_TIMEOUT: "30s"
+      
+      # Configuración adicional
+      BAO_LOG_LEVEL: "info"
+    command: ["server", "-config=/bao/config/config.hcl"]
+    volumes:
+      - ./providers/openbao/config:/bao/config
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    networks:
+      - envoi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8200/v1/sys/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+
+networks:
+  envoi-network:

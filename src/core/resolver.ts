@@ -1,10 +1,12 @@
-import { spawn } from 'child_process';
 import { EnvoiConfig, ResolvedVariable } from '../types';
-import { providerRegistry } from '../providers/registry';
-import { ValidationError, ProviderError } from '../utils/errors';
-import { Logger } from '../utils/logger';
+import { ProviderError, ValidationError } from '../utils/errors';
 
-export async function resolveVariables(config: EnvoiConfig): Promise<ResolvedVariable[]> {
+import { Logger } from '../utils/logger';
+import { providerRegistry } from '../providers/registry';
+import { spawn } from 'child_process';
+
+export async function resolveVariables(config: EnvoiConfig, verbose: boolean): Promise<ResolvedVariable[]> {
+  Logger.setDebug(verbose);
   const resolvedVariables: ResolvedVariable[] = [];
 
   for (const variable of config.variables) {
@@ -13,6 +15,7 @@ export async function resolveVariables(config: EnvoiConfig): Promise<ResolvedVar
       let sourceInfo = '';
 
       // First check if variable is already in environment
+      Logger.debug(`[Resolver] Resolving variable '${variable.name}' using process.env: ${process.env[variable.name]}`);
       const envValue = process.env[variable.name];
       if (envValue !== undefined) {
         value = envValue;
@@ -21,6 +24,7 @@ export async function resolveVariables(config: EnvoiConfig): Promise<ResolvedVar
 
       // If not in environment, try to resolve from sources
       if (value === undefined && config.sources && config.sources[variable.name]) {
+        Logger.debug(`[Resolver] Attempting to resolve variable '${variable.name}' from configured sources`);
         const variableSource = config.sources[variable.name];
         const provider = providerRegistry.get(variableSource.type);
         
@@ -72,12 +76,12 @@ export async function resolveAndExecute(
   verbose: boolean = false
 ): Promise<void> {
   Logger.setDebug(verbose);
-  const resolvedVariables = await resolveVariables(config);
+  const resolvedVariables = await resolveVariables(config, verbose);
 
   if (verbose) {
-    Logger.debug('Resolved variables:');
+    Logger.debug('[Resolver] Resolved variables:');
     resolvedVariables.forEach(variable => {
-      Logger.debugDetail(`${variable.name}: ${variable.source}`);
+      Logger.debugDetail(`[Resolver] ${variable.name}: ${variable.source}`);
     });
   }
 
@@ -95,7 +99,7 @@ export async function resolveAndExecute(
     }
 
     if (verbose) {
-      Logger.debug(`Executing: ${command}`);
+      Logger.debug(`[Resolver] Executing: ${command}`);
     }
 
     const child = spawn(cmd, args, {
