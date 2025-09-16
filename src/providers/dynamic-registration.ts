@@ -25,15 +25,16 @@ export function registerProvidersFromConfig(config: EnvoiConfig, verbose: boolea
 
   // Register providers based on configuration
   for (const [name, providerConfig] of Object.entries(config.providers)) {
-    if (!providerConfig.enabled) {
+    const config = providerConfig as import('../config/schema').ProviderConfig;
+    if (!config.enabled) {
       Logger.debug(`[DymanicResgistration] Provider '${name}' is disabled, skipping registration`);
       continue;
     }
 
-    Logger.debug(`[DymanicResgistration] Registering provider '${name}' of type '${providerConfig.type}'`);
+    Logger.debug(`[DymanicResgistration] Registering provider '${name}' of type '${config.type}'`);
 
     try {
-      const provider = ProviderFactory.create(providerConfig.type, providerConfig.config);
+      const provider = ProviderFactory.create(config.type, config.config);
       providerRegistry.register(provider);
       Logger.debug(`[DymanicResgistration] Successfully registered provider '${name}'`);
     } catch (error) {

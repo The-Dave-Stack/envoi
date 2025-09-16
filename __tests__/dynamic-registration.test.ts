@@ -20,7 +20,7 @@ describe('Dynamic Provider Registration', () => {
       variables: [],
     };
 
-    registerProvidersFromConfig(config);
+    registerProvidersFromConfig(config, false);
 
     expect(providerRegistry.has('local')).toBe(true);
     expect(providerRegistry.getRegisteredProviders()).toContain('local');
@@ -38,7 +38,7 @@ describe('Dynamic Provider Registration', () => {
       }
     };
 
-    registerProvidersFromConfig(config);
+    registerProvidersFromConfig(config, false);
 
     expect(providerRegistry.has('local')).toBe(true);
     expect(providerRegistry.getRegisteredProviders()).toEqual(['local']);
@@ -61,7 +61,7 @@ describe('Dynamic Provider Registration', () => {
       }
     };
 
-    registerProvidersFromConfig(config);
+    registerProvidersFromConfig(config, false);
 
     expect(providerRegistry.has('local')).toBe(true);
     expect(providerRegistry.has('vault')).toBe(false);
@@ -82,7 +82,7 @@ describe('Dynamic Provider Registration', () => {
 
     // Should not throw, but should log warning
     expect(() => {
-      registerProvidersFromConfig(config);
+      registerProvidersFromConfig(config, false);
     }).not.toThrow();
 
     expect(providerRegistry.isEmpty()).toBe(true);

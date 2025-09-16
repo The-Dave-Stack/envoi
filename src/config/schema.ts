@@ -22,14 +22,14 @@ const CommandConfigSchema = z.object({
 const ProviderConfigSchema = z.object({
   type: z.enum(['local', 'vault', 'openbao']),
   enabled: z.boolean().default(true),
-  config: z.record(z.any()).optional(),
+  config: z.record(z.string(), z.any()).optional(),
 });
 
-const ProvidersConfigSchema = z.record(ProviderConfigSchema);
+const ProvidersConfigSchema = z.record(z.string(), ProviderConfigSchema);
 
 const EnvoiConfigSchema = z.object({
   variables: z.array(VariableDefinitionSchema),
-  sources: z.record(VariableSourceSchema).optional(),
+  sources: z.record(z.string(), VariableSourceSchema).optional(),
   providers: ProvidersConfigSchema.optional(),
   command: CommandConfigSchema.optional(),
 });

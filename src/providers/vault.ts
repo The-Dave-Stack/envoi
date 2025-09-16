@@ -1,7 +1,8 @@
 // Note: node-vault is optional dependency
+let vaultModule: any;
 try {
-  var vaultModule = require('node-vault');
-} catch (e) {
+  vaultModule = require('node-vault');
+} catch {
   // Module not available
 }
 import { Provider, VariableSource } from '../types';

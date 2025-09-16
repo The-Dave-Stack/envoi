@@ -60,7 +60,7 @@ sources:
 
   test('should resolve variables from local source', async () => {
     const config = await loadConfig(testConfigPath);
-    const resolved = await resolveVariables(config);
+    const resolved = await resolveVariables(config, false);
     
     const testVar = resolved.find(v => v.name === 'TEST_VAR');
     expect(testVar).toBeDefined();
@@ -79,7 +79,7 @@ sources:
     
     const config = await loadConfig(testConfigPath);
     
-    await expect(resolveVariables(config)).rejects.toThrow(
+    await expect(resolveVariables(config, false)).rejects.toThrow(
       'Environment file not found'
     );
   });

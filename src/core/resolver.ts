@@ -25,7 +25,7 @@ export async function resolveVariables(config: EnvoiConfig, verbose: boolean): P
       // If not in environment, try to resolve from sources
       if (value === undefined && config.sources && config.sources[variable.name]) {
         Logger.debug(`[Resolver] Attempting to resolve variable '${variable.name}' from configured sources`);
-        const variableSource = config.sources[variable.name];
+        const variableSource = config.sources[variable.name] as import('../config/schema').VariableSource;
         const provider = providerRegistry.get(variableSource.type);
         
         // Create a source with the key fallback for provider resolution

@@ -19,7 +19,7 @@ export function filterDisabledProviders(config: EnvoiConfig): EnvoiConfig {
   filteredConfig.variables = config.variables.filter(variable => {
     // If variable has a source configured, check if the provider type is enabled
     if (config.sources && config.sources[variable.name]) {
-      const source = config.sources[variable.name];
+      const source = config.sources[variable.name] as import('../config/schema').VariableSource;
       return enabledProviderTypes.has(source.type);
     }
     // Keep variables without sources (they'll use defaults or environment)
@@ -30,7 +30,8 @@ export function filterDisabledProviders(config: EnvoiConfig): EnvoiConfig {
   if (config.sources) {
     const filteredSources: Record<string, any> = {};
     for (const [variableName, source] of Object.entries(config.sources)) {
-      if (enabledProviderTypes.has(source.type)) {
+      const typedSource = source as import('../config/schema').VariableSource;
+      if (enabledProviderTypes.has(typedSource.type)) {
         filteredSources[variableName] = source;
       }
     }
