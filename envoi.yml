@@ -16,9 +16,17 @@ variables:
   - name: DATABASE_URL
     required: true
     description: "Database connection string"
+    source:
+      type: local
+      file: .env
+      key: DB_URL
   - name: API_KEY
     required: true
     description: "API key for external service"
+    source:
+      type: local
+      file: .env
+      key: EXTERNAL_API_KEY
   - name: NODE_ENV
     required: false
     default: "development"
@@ -26,31 +34,23 @@ variables:
   - name: SECRET_TOKEN
     required: false
     description: "Secret token from OpenBao"
+    source:
+      type: openbao
+      path: secret/data/myapp
+      key: secret_key
   - name: PORT
     required: false
     default: "3000"
     description: "Server port"
-
-sources:
-  DATABASE_URL:
-    type: local
-    file: .env
-    key: DB_URL
-  API_KEY:
-    type: local
-    file: .env
-    key: EXTERNAL_API_KEY
-  # Example for OpenBao integration (v1.1)
-  SECRET_TOKEN:
-    type: openbao
-    path: secret/data/myapp
-    key: secret_key
   # 
-  # Example for Vault integration (v1.1)
-  # LEGACY_TOKEN:
-  #   type: vault
-  #  path: secret/data/myapp
-  #   key: api_token
+  # Example for Vault integration
+  # - name: LEGACY_TOKEN
+  #   required: false
+  #   description: "Legacy token from Vault"
+  #   source:
+  #     type: vault
+  #     path: secret/data/myapp
+  #     key: api_token
 
 # Default command to execute when no command-line arguments are provided
 command:

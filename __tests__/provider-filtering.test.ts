@@ -15,15 +15,10 @@ describe('Provider Filtering', () => {
   test('should filter out variables that use disabled providers', () => {
     const config: EnvoiConfig = {
       variables: [
-        { name: 'LOCAL_VAR', required: false, description: 'Local variable' },
-        { name: 'VAULT_VAR', required: false, description: 'Vault variable' },
-        { name: 'OPENBAO_VAR', required: false, description: 'OpenBao variable' },
+        { name: 'LOCAL_VAR', required: false, description: 'Local variable', source: { type: 'local', key: 'local_key' } },
+        { name: 'VAULT_VAR', required: false, description: 'Vault variable', source: { type: 'vault', key: 'vault_key' } },
+        { name: 'OPENBAO_VAR', required: false, description: 'OpenBao variable', source: { type: 'openbao', key: 'openbao_key' } },
       ],
-      sources: {
-        LOCAL_VAR: { type: 'local', key: 'local_key' },
-        VAULT_VAR: { type: 'vault', key: 'vault_key' },
-        OPENBAO_VAR: { type: 'openbao', key: 'openbao_key' },
-      },
       providers: {
         local: { type: 'local', enabled: true, config: {} },
         vault: { type: 'vault', enabled: false, config: {} },
@@ -36,22 +31,14 @@ describe('Provider Filtering', () => {
     // Should only keep the local variable
     expect(filteredConfig.variables).toHaveLength(1);
     expect(filteredConfig.variables[0].name).toBe('LOCAL_VAR');
-    
-    // Should only keep the local source
-    expect(filteredConfig.sources).toBeDefined();
-    expect(Object.keys(filteredConfig.sources!)).toHaveLength(1);
-    expect(filteredConfig.sources!.LOCAL_VAR).toBeDefined();
   });
 
   test('should keep variables without sources', () => {
     const config: EnvoiConfig = {
       variables: [
         { name: 'NO_SOURCE_VAR', required: false, description: 'Variable without source' },
-        { name: 'VAULT_VAR', required: false, description: 'Vault variable' },
+        { name: 'VAULT_VAR', required: false, description: 'Vault variable', source: { type: 'vault', key: 'vault_key' } },
       ],
-      sources: {
-        VAULT_VAR: { type: 'vault', key: 'vault_key' },
-      },
       providers: {
         vault: { type: 'vault', enabled: false, config: {} },
       }
@@ -62,20 +49,13 @@ describe('Provider Filtering', () => {
     // Should keep the variable without source
     expect(filteredConfig.variables).toHaveLength(1);
     expect(filteredConfig.variables[0].name).toBe('NO_SOURCE_VAR');
-    
-    // Should filter out the vault source
-    expect(filteredConfig.sources).toBeDefined();
-    expect(Object.keys(filteredConfig.sources!)).toHaveLength(0);
   });
 
   test('should preserve providers and command configuration', () => {
     const config: EnvoiConfig = {
       variables: [
-        { name: 'VAULT_VAR', required: false, description: 'Vault variable' },
+        { name: 'VAULT_VAR', required: false, description: 'Vault variable', source: { type: 'vault', key: 'vault_key' } },
       ],
-      sources: {
-        VAULT_VAR: { type: 'vault', key: 'vault_key' },
-      },
       providers: {
         vault: { type: 'vault', enabled: false, config: {} },
       },
@@ -93,10 +73,8 @@ describe('Provider Filtering', () => {
     // Should preserve command configuration
     expect(filteredConfig.command).toEqual(config.command);
     
-    // Should filter out variables and sources
+    // Should filter out variables
     expect(filteredConfig.variables).toHaveLength(0);
-    expect(filteredConfig.sources).toBeDefined();
-    expect(Object.keys(filteredConfig.sources!)).toHaveLength(0);
   });
 
   test('should handle configuration without sources', () => {
@@ -115,8 +93,5 @@ describe('Provider Filtering', () => {
     // Should keep all variables since they don't have sources
     expect(filteredConfig.variables).toHaveLength(2);
     expect(filteredConfig.variables.map(v => v.name)).toEqual(['VAR1', 'VAR2']);
-    
-    // Should not create sources object if it didn't exist
-    expect(filteredConfig.sources).toBeUndefined();
   });
 });

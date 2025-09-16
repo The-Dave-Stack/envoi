@@ -22,21 +22,20 @@ export async function resolveVariables(config: EnvoiConfig, verbose: boolean): P
         sourceInfo = 'environment';
       }
 
-      // If not in environment, try to resolve from sources
-      if (value === undefined && config.sources && config.sources[variable.name]) {
-        Logger.debug(`[Resolver] Attempting to resolve variable '${variable.name}' from configured sources`);
-        const variableSource = config.sources[variable.name] as import('../config/schema').VariableSource;
-        const provider = providerRegistry.get(variableSource.type);
+      // If not in environment, try to resolve from inline source
+      if (value === undefined && variable.source) {
+        Logger.debug(`[Resolver] Attempting to resolve variable '${variable.name}' from inline source`);
+        const provider = providerRegistry.get(variable.source.type);
         
         // Create a source with the key fallback for provider resolution
         const sourceWithKey = {
-          ...variableSource,
-          key: variableSource.key || variable.name
+          ...variable.source,
+          key: variable.source.key || variable.name
         };
         
         value = await provider.resolve(sourceWithKey);
         const keyUsed = sourceWithKey.key;
-        sourceInfo = `${variableSource.type}:${keyUsed}`;
+        sourceInfo = `${variable.source.type}:${keyUsed}`;
       }
 
       // If still not found, use default or throw error

@@ -7,22 +7,20 @@ describe('OpenBao Configuration Integration', () => {
         {
           name: 'SECRET_KEY',
           required: true,
-          description: 'Secret key from OpenBao'
+          description: 'Secret key from OpenBao',
+          source: {
+            type: 'openbao',
+            path: 'secret/data/myapp',
+            key: 'secret_key'
+          }
         }
-      ],
-      sources: {
-        SECRET_KEY: {
-          type: 'openbao',
-          path: 'secret/data/myapp',
-          key: 'secret_key'
-        }
-      }
+      ]
     };
 
     const config = validateConfig(configData);
     expect(config.variables).toHaveLength(1);
-    expect(config.sources?.SECRET_KEY).toBeDefined();
-    expect(config.sources?.SECRET_KEY.type).toBe('openbao');
+    expect(config.variables[0].source).toBeDefined();
+    expect(config.variables[0].source?.type).toBe('openbao');
   });
 
   test('should validate configuration with new provider format', () => {
@@ -31,7 +29,12 @@ describe('OpenBao Configuration Integration', () => {
         {
           name: 'SECRET_KEY',
           required: true,
-          description: 'Secret key from OpenBao'
+          description: 'Secret key from OpenBao',
+          source: {
+            type: 'openbao',
+            path: 'secret/data/myapp',
+            key: 'secret_key'
+          }
         }
       ],
       providers: {
@@ -42,13 +45,6 @@ describe('OpenBao Configuration Integration', () => {
             address: 'http://localhost:8200',
             token: '${OPENBAO_TOKEN}'
           }
-        }
-      },
-      sources: {
-        SECRET_KEY: {
-          type: 'openbao',
-          path: 'secret/data/myapp',
-          key: 'secret_key'
         }
       }
     };
@@ -65,32 +61,30 @@ describe('OpenBao Configuration Integration', () => {
         {
           name: 'OLD_SECRET',
           required: true,
-          description: 'Secret from Vault'
+          description: 'Secret from Vault',
+          source: {
+            type: 'vault',
+            path: 'secret/data/myapp',
+            key: 'old_secret'
+          }
         },
         {
           name: 'NEW_SECRET',
           required: true,
-          description: 'Secret from OpenBao'
+          description: 'Secret from OpenBao',
+          source: {
+            type: 'openbao',
+            path: 'secret/data/myapp',
+            key: 'new_secret'
+          }
         }
-      ],
-      sources: {
-        OLD_SECRET: {
-          type: 'vault',
-          path: 'secret/data/myapp',
-          key: 'old_secret'
-        },
-        NEW_SECRET: {
-          type: 'openbao',
-          path: 'secret/data/myapp',
-          key: 'new_secret'
-        }
-      }
+      ]
     };
 
     const config = validateConfig(configData);
-    expect(config.sources).toBeDefined();
-    expect(config.sources?.OLD_SECRET.type).toBe('vault');
-    expect(config.sources?.NEW_SECRET.type).toBe('openbao');
+    expect(config.variables[0].source).toBeDefined();
+    expect(config.variables[0].source?.type).toBe('vault');
+    expect(config.variables[1].source?.type).toBe('openbao');
   });
 
   test('should reject invalid provider type', () => {
@@ -99,16 +93,14 @@ describe('OpenBao Configuration Integration', () => {
         {
           name: 'SECRET_KEY',
           required: true,
-          description: 'Secret key'
+          description: 'Secret key',
+          source: {
+            type: 'invalid_provider' as any,
+            path: 'secret/data/myapp',
+            key: 'secret_key'
+          }
         }
-      ],
-      sources: {
-        SECRET_KEY: {
-          type: 'invalid_provider' as any,
-          path: 'secret/data/myapp',
-          key: 'secret_key'
-        }
-      }
+      ]
     };
 
     expect(() => validateConfig(configData)).toThrow();

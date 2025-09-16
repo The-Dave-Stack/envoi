@@ -22,16 +22,14 @@ variables:
   - name: TEST_VAR
     required: true
     description: "Test variable"
+    source:
+      type: local
+      file: ${testEnvPath}
+      key: TEST_KEY
   - name: OPTIONAL_VAR
     required: false
     default: "default_value"
     description: "Optional variable"
-
-sources:
-  TEST_VAR:
-    type: local
-    file: ${testEnvPath}
-    key: TEST_KEY
 `;
     await fs.writeFile(testConfigPath, configContent);
 
