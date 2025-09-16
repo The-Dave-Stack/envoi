@@ -15,7 +15,7 @@ export async function loadConfig(configPath: string): Promise<EnvoiConfig> {
     
     return validateConfig(data);
   } catch (error) {
-    Logger.errorWithContext('Failed to load configuration:', error);
+    Logger.errorWithContext('[Loader] Failed to load configuration:', error);
     if (error instanceof Error) {
       if (error.message.includes('ENOENT')) {
         throw new EnvoiError(`Configuration file not found: ${configPath}`);

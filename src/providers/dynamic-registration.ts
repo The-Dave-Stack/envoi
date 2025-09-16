@@ -10,45 +10,45 @@ export function registerProvidersFromConfig(config: EnvoiConfig, verbose: boolea
   providerRegistry.clear();
   
   if (!config.providers) {
-    Logger.debug('No providers configuration found, using defaults');
+    Logger.debug('[DymanicResgistration] No providers configuration found, using defaults');
     // Register local provider as default if no providers config
     try {
       providerRegistry.register(ProviderFactory.create('local'));
-      Logger.debug('Registered default local provider');
+      Logger.debug('[DymanicResgistration] Registered default local provider');
     } catch (error) {
-      Logger.warn(`Failed to register default local provider: ${error}`);
+      Logger.warn(`[DymanicResgistration] Failed to register default local provider: ${error}`);
     }
     return;
   }
 
-  Logger.debug(`Found ${Object.keys(config.providers).length} provider configurations`);
+  Logger.debug(`[DymanicResgistration] Found ${Object.keys(config.providers).length} provider configurations`);
 
   // Register providers based on configuration
   for (const [name, providerConfig] of Object.entries(config.providers)) {
     if (!providerConfig.enabled) {
-      Logger.debug(`Provider '${name}' is disabled, skipping registration`);
+      Logger.debug(`[DymanicResgistration] Provider '${name}' is disabled, skipping registration`);
       continue;
     }
 
-    Logger.debug(`Registering provider '${name}' of type '${providerConfig.type}'`);
+    Logger.debug(`[DymanicResgistration] Registering provider '${name}' of type '${providerConfig.type}'`);
 
     try {
       const provider = ProviderFactory.create(providerConfig.type, providerConfig.config);
       providerRegistry.register(provider);
-      Logger.debug(`Successfully registered provider '${name}'`);
+      Logger.debug(`[DymanicResgistration] Successfully registered provider '${name}'`);
     } catch (error) {
       if (error instanceof ProviderError) {
-        Logger.warn(`Failed to register provider '${name}': ${error.message}`);
+        Logger.warn(`[DymanicResgistration] Failed to register provider '${name}': ${error.message}`);
       } else {
-        Logger.warn(`Failed to register provider '${name}': ${error}`);
+        Logger.warn(`[DymanicResgistration] Failed to register provider '${name}': ${error}`);
       }
     }
   }
 
   if (providerRegistry.isEmpty()) {
-    Logger.warn('No providers were successfully registered');
+    Logger.warn('[DymanicResgistration] No providers were successfully registered');
   } else {
     const registeredProviders = providerRegistry.getRegisteredProviders();
-    Logger.debug(`Registered providers: ${registeredProviders.join(', ')}`);
+    Logger.debug(`[DymanicResgistration] Registered providers: ${registeredProviders.join(', ')}`);
   }
 }
