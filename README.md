@@ -56,7 +56,7 @@ Environment-agnostic configuration orchestrator for consistent application deplo
 
 ```bash
 npm install -g envoi
-````
+```
 
 -----
 
@@ -72,18 +72,16 @@ Get started in 3 steps:
     variables:
       - name: DATABASE_URL
         required: true
+        source:
+          type: local
+          file: .env
+          key: DB_URL
       - name: API_KEY
         required: true
-
-    sources:
-      DATABASE_URL:
-        type: local
-        file: .env
-        key: DB_URL
-      API_KEY:
-        type: local
-        file: .env
-        key: EXTERNAL_API_KEY
+        source:
+          type: local
+          file: .env
+          key: EXTERNAL_API_KEY
     ```
 
 2.  **Provide the values in `.env`:**
@@ -219,19 +217,31 @@ envoi config rm <name>
 ### `envoi.yml` Structure
 
 ```yaml
+# Optional: Provider configurations for enabling/disabling specific providers
+providers:
+  local:
+    type: local
+    enabled: true
+    config:
+      file: .env
+  
+  openbao:
+    type: openbao
+    enabled: true
+    config:
+      address: "http://localhost:8200"
+      token: "${OPENBAO_TOKEN}"
+
 # A list of variables your application expects in its environment.
 variables:
   - name: VARIABLE_NAME          # The final environment variable name (e.g., API_KEY).
     required: true               # Fails if the variable cannot be resolved.
     default: "default_value"     # Optional: A fallback value if not found in sources.
     description: "Description"    # Documents the variable's purpose.
-
-# Maps how each variable is sourced.
-sources:
-  VARIABLE_NAME:
-    type: local                  # Provider type: 'local' or 'vault'.
-    file: .env                  # For 'local' provider: the source file path.
-    key: ENV_KEY                # The key to look up in the source file.
+    source:                      # Optional: Inline source configuration for this variable.
+      type: local                # Provider type: 'local', 'vault', or 'openbao'.
+      file: .env                # For 'local' provider: the source file path.
+      key: ENV_KEY              # The key to look up in the source file.
 
 # Optional: A default command to run if none is provided via the command line.
 command:
@@ -260,15 +270,17 @@ providers:
     config:
       file: .env
 
-sources:
-  DATABASE_URL:
-    type: local
-    file: .env
-    key: DEV_DATABASE_URL
-  API_KEY:
-    type: local
-    file: .env
-    key: DEV_API_KEY
+variables:
+  - name: DATABASE_URL
+    source:
+      type: local
+      file: .env
+      key: DEV_DATABASE_URL
+  - name: API_KEY
+    source:
+      type: local
+      file: .env
+      key: DEV_API_KEY
 
 command:
   default: "npm run dev"
@@ -301,11 +313,12 @@ Envoi supports a dual configuration system with different scopes:
 #### Local Provider (`.env` files)
 
 ```yaml
-sources:
-  DATABASE_URL:
-    type: local
-    file: .env
-    key: DB_URL
+variables:
+  - name: DATABASE_URL
+    source:
+      type: local
+      file: .env
+      key: DB_URL
 ```
 
 #### Vault Provider (v1.1)
@@ -313,11 +326,25 @@ sources:
 Requires `VAULT_TOKEN` and `VAULT_ADDR` environment variables to be set.
 
 ```yaml
-sources:
-  SECRET_TOKEN:
-    type: vault
-    path: secret/data/myapp
-    key: api_token
+variables:
+  - name: SECRET_TOKEN
+    source:
+      type: vault
+      path: secret/data/myapp
+      key: api_token
+```
+
+#### OpenBao Provider
+
+Requires `OPENBAO_TOKEN` and `OPENBAO_ADDR` environment variables to be set.
+
+```yaml
+variables:
+  - name: API_KEY
+    source:
+      type: openbao
+      path: secret/data/myapp
+      key: api_key
 ```
 
 ### Variable Resolution Order
@@ -343,11 +370,10 @@ variables:
     default: "3000"
   - name: DATABASE_URL
     required: true
-sources:
-  DATABASE_URL:
-    type: local
-    file: .env
-    key: DEV_DATABASE_URL
+    source:
+      type: local
+      file: .env
+      key: DEV_DATABASE_URL
 ```
 
 ```bash
@@ -364,17 +390,16 @@ variables:
     default: "production"
   - name: DATABASE_URL
     required: true
+    source:
+      type: vault
+      path: secret/data/production/myapp
+      key: database_url
   - name: API_KEY
     required: true
-sources:
-  DATABASE_URL:
-    type: vault
-    path: secret/data/production/myapp
-    key: database_url
-  API_KEY:
-    type: vault
-    path: secret/data/production/myapp
-    key: external_api_key
+    source:
+      type: vault
+      path: secret/data/production/myapp
+      key: external_api_key
 ```
 
 ```bash
@@ -400,7 +425,7 @@ envoi exec -- npm start
 
 The detailed version history is available in the `CHANGELOG.md` file.
 
-### v1.4 (Latest)
+### v0.1.0 (Latest)
 
   - **Named Configuration Execution**: Execute configurations with `envoi [config_name]` syntax
   - **Dual Configuration System**: Support for user (~/.envoi/) and project (./.envoi/) directories
@@ -408,6 +433,8 @@ The detailed version history is available in the `CHANGELOG.md` file.
   - **Priority-based Configuration Merging**: project > user > legacy for flexible configuration
   - **Enhanced CLI Help**: Comprehensive help system with all new features and examples
   - **Code Structure Reorganization**: Separated command infrastructure from command implementations
+  - **OpenBao Provider**: Added support for OpenBao secret management
+  - **Inline Variable Sources**: New configuration format with sources defined inline with variables
 
 ### v1.3
 
