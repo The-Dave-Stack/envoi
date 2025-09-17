@@ -16,12 +16,16 @@ Environment-agnostic configuration orchestrator for consistent application deplo
 - [Installation](#installation)
 - [Usage](#usage)
   - [Quick Start](#quick-start)
+  - [Named Configurations](#named-configurations)
   - [Executing Commands](#executing-commands)
+  - [Configuration Management](#configuration-management)
   - [Listing Variables](#listing-variables)
   - [Default Command](#default-command)
   - [Advanced Options](#advanced-options)
 - [Configuration Reference](#configuration-reference)
   - [`envoi.yml` Structure](#envoiyml-structure)
+  - [Named Configuration Files](#named-configuration-files)
+  - [Dual Configuration System](#dual-configuration-system)
   - [Providers](#providers)
   - [Variable Resolution Order](#variable-resolution-order)
 - [Examples](#examples)
@@ -34,14 +38,17 @@ Environment-agnostic configuration orchestrator for consistent application deplo
 
 ## Features
 
-- **Single Source of Truth**: Define all required environment variables in `envoi.yml`.
-- **Multiple Providers**: Support for `.env` files and HashiCorp Vault.
-- **Default Command Configuration**: Set default commands in `envoi.yml` with command-line override capability.
-- **Flexible Command Syntax**: Use both `envoi exec "command"` and `envoi exec -- command` formats.
-- **Colored Logging**: Beautiful colorized output with a clear visual hierarchy.
-- **Validation**: Ensure required variables are present before execution.
-- **Security**: No secret caching or disk writing—variables are loaded directly into memory.
-- **Zero Setup**: New developers can start immediately without manual configuration.
+- **Named Configuration Execution**: Execute configurations with `envoi [config_name]` syntax
+- **Dual Configuration System**: Support for user (~/.envoi/) and project (./.envoi/) directories
+- **Configuration Management**: Create, list, show, edit, and remove named configurations
+- **Priority-based Configuration Merging**: project > user > legacy for flexible configuration
+- **Multiple Providers**: Support for `.env` files, HashiCorp Vault, and OpenBao
+- **Default Command Configuration**: Set default commands in configuration files with command-line override
+- **Flexible Command Syntax**: Use both `envoi exec "command"` and `envoi exec -- command` formats
+- **Colored Logging**: Beautiful colorized output with a clear visual hierarchy
+- **Validation**: Ensure required variables are present before execution
+- **Security**: No secret caching or disk writing—variables are loaded directly into memory
+- **Zero Setup**: New developers can start immediately without manual configuration
 
 ---
 
@@ -93,6 +100,40 @@ Get started in 3 steps:
     envoi exec -- node your-app.js
     ```
 
+### Named Configurations
+
+Envoi supports named configurations for different environments and projects. You can create multiple configuration files and execute them using simple syntax.
+
+**Create a named configuration:**
+
+```bash
+# Initialize configuration directories
+envoi config init
+
+# Create a development configuration
+envoi config create dev
+
+# Create a production configuration  
+envoi config create prod
+```
+
+**Execute named configurations:**
+
+```bash
+# Execute development configuration
+envoi dev
+
+# Execute production configuration with command override
+envoi prod "npm run build"
+
+# List all available configurations
+envoi config ls
+```
+
+**Configuration file locations:**
+- **User configurations**: `~/.envoi/{name}.yml` (available across all projects)
+- **Project configurations**: `./.envoi/{name}.yml` (project-specific)
+
 ### Executing Commands
 
 `envoi` supports two syntax styles. The `--` separator is recommended for clarity and reliability.
@@ -142,6 +183,35 @@ Now, simply run `envoi exec` to execute `npm start`. Any command provided on the
     envoi exec -- npm test --verbose
     ```
 
+### Configuration Management
+
+Envoi provides comprehensive configuration management commands:
+
+```bash
+# Initialize configuration directories
+envoi config init
+
+# List all available configurations
+envoi config ls
+
+# Create a new configuration
+envoi config create <name>
+
+# Show configuration details
+envoi config show <name>
+
+# Edit configuration file
+envoi config edit <name>
+
+# Remove configuration
+envoi config rm <name>
+```
+
+**Configuration priority (highest to lowest):**
+1. **Project configuration**: `./.envoi/{name}.yml`
+2. **User configuration**: `~/.envoi/{name}.yml`
+3. **Legacy configuration**: `envoi.yml`
+
 -----
 
 ## Configuration Reference
@@ -168,6 +238,63 @@ command:
   default: "npm start"
   description: "Start the application server."
 ```
+
+### Named Configuration Files
+
+Named configuration files follow the same structure as `envoi.yml` but are stored in the configuration directories:
+
+```yaml
+# .envoi/dev.yml
+variables:
+  - name: NODE_ENV
+    default: "development"
+  - name: DATABASE_URL
+    required: true
+  - name: API_KEY
+    required: true
+
+providers:
+  local:
+    type: local
+    enabled: true
+    config:
+      file: .env
+
+sources:
+  DATABASE_URL:
+    type: local
+    file: .env
+    key: DEV_DATABASE_URL
+  API_KEY:
+    type: local
+    file: .env
+    key: DEV_API_KEY
+
+command:
+  default: "npm run dev"
+  description: "Start development server"
+```
+
+### Dual Configuration System
+
+Envoi supports a dual configuration system with different scopes:
+
+**Project Configurations** (`./.envoi/`):
+- Specific to the current project
+- Stored in the project root directory
+- Override user configurations
+- Ideal for project-specific settings
+
+**User Configurations** (`~/.envoi/`):
+- Available across all projects
+- Stored in the user's home directory
+- Provide default configurations
+- Perfect for personal development settings
+
+**Priority Order** (highest to lowest):
+1. **Project configuration** (`./.envoi/{name}.yml`)
+2. **User configuration** (`~/.envoi/{name}.yml`)  
+3. **Legacy configuration** (`envoi.yml`)
 
 ### Providers
 
@@ -273,7 +400,16 @@ envoi exec -- npm start
 
 The detailed version history is available in the `CHANGELOG.md` file.
 
-### v1.3 (Latest)
+### v1.4 (Latest)
+
+  - **Named Configuration Execution**: Execute configurations with `envoi [config_name]` syntax
+  - **Dual Configuration System**: Support for user (~/.envoi/) and project (./.envoi/) directories
+  - **Configuration Management**: Create, list, show, edit, and remove named configurations
+  - **Priority-based Configuration Merging**: project > user > legacy for flexible configuration
+  - **Enhanced CLI Help**: Comprehensive help system with all new features and examples
+  - **Code Structure Reorganization**: Separated command infrastructure from command implementations
+
+### v1.3
 
   - **Default Command Configuration** & Priority Logic.
   - Enhanced CLI Help and `envoi env` output.

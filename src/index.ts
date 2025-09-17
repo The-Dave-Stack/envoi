@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { CommandRegistry } from './core/commands';
+import { CommandRegistry } from './core/infrastructure';
 import { Logger } from './utils/logger';
 import packageJson from '../package.json';
 

@@ -1,6 +1,6 @@
 import { Command } from 'commander';
-import { BaseCommand } from './BaseCommand';
-import { CommandDiscovery } from './discover';
+import { BaseCommand } from '../commands/BaseCommand';
+import { CommandDiscovery } from './command-discovery';
 
 export interface CommandRegistration {
   command: BaseCommand;

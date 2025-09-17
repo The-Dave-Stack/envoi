@@ -1,4 +1,4 @@
-import { BaseCommand } from './BaseCommand';
+import { BaseCommand } from '../commands/BaseCommand';
 import { Logger } from '../../utils/logger';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -85,13 +85,17 @@ export class CommandDiscovery {
     }
   }
 
-  static async createCommandInstances(commandsDir: string = __dirname): Promise<BaseCommand[]> {
-    const discoveredCommands = await this.discoverCommands(commandsDir);
+  static async createCommandInstances(commandsDir?: string): Promise<BaseCommand[]> {
+    // Default to commands directory, not the infrastructure directory
+    const searchDir = commandsDir || path.join(__dirname, '..', 'commands');
+    const discoveredCommands = await this.discoverCommands(searchDir);
     return discoveredCommands.map(({ CommandClass }) => new CommandClass());
   }
 
-  static async getCommandClasses(commandsDir: string = __dirname): Promise<Array<new () => BaseCommand>> {
-    const discoveredCommands = await this.discoverCommands(commandsDir);
+  static async getCommandClasses(commandsDir?: string): Promise<Array<new () => BaseCommand>> {
+    // Default to commands directory, not the infrastructure directory
+    const searchDir = commandsDir || path.join(__dirname, '..', 'commands');
+    const discoveredCommands = await this.discoverCommands(searchDir);
     return discoveredCommands.map(({ CommandClass }) => CommandClass);
   }
 }
