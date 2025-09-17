@@ -25,15 +25,62 @@ Examples:
       flags: '-v, --verbose',
       description: 'Enable verbose output showing variable resolution process',
       defaultValue: false
+    },
+    {
+      flags: '--user-config-dir <path>',
+      description: 'Path to user configuration directory (default: "~/.envoi")'
+    },
+    {
+      flags: '--project-config-dir <path>',
+      description: 'Path to project configuration directory (default: "./.envoi")'
+    },
+    {
+      flags: '--user-config-only',
+      description: 'Use only user configuration (requires config name)',
+      defaultValue: false
+    },
+    {
+      flags: '--project-config-only',
+      description: 'Use only project configuration (requires config name)',
+      defaultValue: false
     }
   ];
 
-  async action(options: { config: string; verbose: boolean }): Promise<void> {
+  async action(options: {
+    config: string;
+    verbose: boolean;
+    userConfigDir?: string;
+    projectConfigDir?: string;
+    userConfigOnly?: boolean;
+    projectConfigOnly?: boolean;
+  }, command: { args: string[] }): Promise<void> {
     Logger.debug('Starting env command');
     
     try {
+      const rawArgs = command.args;
+      let configName: string | undefined;
+      
+      // Check if first arg is a config name (no dots, no slashes)
+      if (rawArgs.length > 0) {
+        const firstArg = rawArgs[0];
+        if (!firstArg.includes('.') && !firstArg.includes('/') && !firstArg.includes(' ')) {
+          configName = firstArg;
+        }
+      }
+      
       // Setup environment and get filtered config
-      const filteredConfig = await this.setupEnvironment(options.config, options.verbose);
+      const setupOptions: any = {};
+      if (options.userConfigDir) setupOptions.userConfigDir = options.userConfigDir;
+      if (options.projectConfigDir) setupOptions.projectConfigDir = options.projectConfigDir;
+      if (options.userConfigOnly) setupOptions.userConfigOnly = options.userConfigOnly;
+      if (options.projectConfigOnly) setupOptions.projectConfigOnly = options.projectConfigOnly;
+      
+      const filteredConfig = await this.setupEnvironment(
+        options.config,
+        options.verbose,
+        configName,
+        setupOptions
+      );
       
       const resolvedVariables = await resolveVariables(filteredConfig, options.verbose);
 

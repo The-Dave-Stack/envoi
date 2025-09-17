@@ -12,7 +12,7 @@ export interface DiscoveredCommand {
 
 export class CommandDiscovery {
   private static readonly COMMAND_PATTERN = /^(.+?)Command\.ts$/;
-  private static readonly EXCLUDED_FILES = ['BaseCommand.ts', 'index.ts', 'discover.ts', 'registry.ts'];
+  private static readonly EXCLUDED_FILES = ['BaseCommand.ts', 'index.ts', 'discover.ts', 'registry.ts', 'ConfigCommand.ts'];
 
   static async discoverCommands(commandsDir?: string): Promise<DiscoveredCommand[]> {
     Logger.setDebug(process.env.DEBUG === 'true' || process.env.DEBUG === '1');

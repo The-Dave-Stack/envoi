@@ -5,6 +5,7 @@ const VariableSourceSchema = z.object({
   file: z.string().optional(),
   key: z.string().optional(),
   path: z.string().optional(),
+  namespace: z.string().optional(),
 });
 
 const VariableDefinitionSchema = z.object({

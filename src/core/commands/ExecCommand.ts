@@ -31,44 +31,92 @@ Examples:
       flags: '-v, --verbose',
       description: 'Enable verbose output showing variable resolution process',
       defaultValue: false
+    },
+    {
+      flags: '--user-config-dir <path>',
+      description: 'Path to user configuration directory (default: "~/.envoi")'
+    },
+    {
+      flags: '--project-config-dir <path>',
+      description: 'Path to project configuration directory (default: "./.envoi")'
+    },
+    {
+      flags: '--user-config-only',
+      description: 'Use only user configuration (requires config name)',
+      defaultValue: false
+    },
+    {
+      flags: '--project-config-only',
+      description: 'Use only project configuration (requires config name)',
+      defaultValue: false
     }
   ];
 
-  async action(options: { config: string; verbose: boolean }, command: { args: string[] }): Promise<void> {
+  async action(args: string[], options: {
+    config: string;
+    verbose: boolean;
+    userConfigDir?: string;
+    projectConfigDir?: string;
+    userConfigOnly?: boolean;
+    projectConfigOnly?: boolean;
+  }): Promise<void> {
     Logger.debug('[ExecCommand] Starting exec command');
     
     try {
-      const rawArgs = command.args;
+      const rawArgs = args || [];
       const separatorIndex = rawArgs.indexOf('--');
       
       let fullCommand: string | undefined;
+      let configName: string | undefined;
       
       if (separatorIndex !== -1) {
         // New syntax: envoi exec -- node server.js
         const commandArgs = rawArgs.slice(separatorIndex + 1);
         fullCommand = commandArgs.join(' ');
       } else if (rawArgs.length > 0) {
-        // Old syntax: envoi exec "node server.js"
-        fullCommand = rawArgs.join(' ');
+        // Check if first arg is a config name (no dots, no slashes)
+        const firstArg = rawArgs[0];
+        if (!firstArg.includes('.') && !firstArg.includes('/') && !firstArg.includes(' ')) {
+          configName = firstArg;
+          // The rest might be the command
+          if (rawArgs.length > 1) {
+            fullCommand = rawArgs.slice(1).join(' ');
+          }
+        } else {
+          // Old syntax: envoi exec "node server.js"
+          fullCommand = rawArgs.join(' ');
+        }
       }
       
       // Setup environment and get filtered config
-      const filteredConfig = await this.setupEnvironment(options.config, options.verbose);
+      const setupOptions: any = {};
+      if (options.userConfigDir) setupOptions.userConfigDir = options.userConfigDir;
+      if (options.projectConfigDir) setupOptions.projectConfigDir = options.projectConfigDir;
+      if (options.userConfigOnly) setupOptions.userConfigOnly = options.userConfigOnly;
+      if (options.projectConfigOnly) setupOptions.projectConfigOnly = options.projectConfigOnly;
+      
+      const filteredConfig = await this.setupEnvironment(
+        options.config,
+        options.verbose,
+        configName,
+        setupOptions
+      );
       
       // If no command-line command provided, use default from config
       if (!fullCommand) {
         if (filteredConfig.command?.default) {
           fullCommand = filteredConfig.command.default;
           if (options.verbose) {
-            Logger.info(`[ExecCommand] Using default command from envoi.yml: ${fullCommand}`);
+            Logger.info(`[ExecCommand] Using default command from configuration: ${fullCommand}`);
           }
         } else {
-          throw new EnvoiError('No command specified. Either provide a command via command line or define a default command in envoi.yml. Use: envoi exec -- <command> or envoi exec "<command>"');
+          throw new EnvoiError('No command specified. Either provide a command via command line or define a default command in your configuration. Use: envoi exec -- <command> or envoi exec "<command>"');
         }
       }
       
       if (options.verbose) {
-        Logger.info(`[ExecCommand] Loading configuration from: ${options.config}`);
+        const configSource = configName ? `configuration '${configName}'` : `configuration file: ${options.config}`;
+        Logger.info(`[ExecCommand] Loading ${configSource}`);
         Logger.info(`[ExecCommand] Executing command: ${fullCommand}`);
       }
 
