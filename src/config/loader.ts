@@ -15,16 +15,19 @@ export async function loadConfig(configPath: string): Promise<EnvoiConfig> {
     
     return validateConfig(data);
   } catch (error) {
-    Logger.errorWithContext('[Loader] Failed to load configuration:', error);
     if (error instanceof Error) {
       if (error.message.includes('ENOENT')) {
+        // Don't log errors for missing files - this is expected behavior during config discovery
         throw new EnvoiError(`Configuration file not found: ${configPath}`);
       }
       if (error.name === 'YAMLParseError') {
+        Logger.errorWithContext(`[Loader] Invalid YAML in configuration file: ${configPath}`, error);
         throw new EnvoiError(`Invalid YAML in configuration file: ${error.message}`);
       }
     }
     
+    // Only log unexpected errors
+    Logger.errorWithContext('[Loader] Failed to load configuration:', error);
     throw new EnvoiError(`Failed to load configuration: ${error}`);
   }
 }
