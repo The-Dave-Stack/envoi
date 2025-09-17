@@ -194,7 +194,7 @@ export class ConfigDiscovery {
     console.log('');
 
     return new Promise((resolve) => {
-      const askForSelection = () => {
+      const askForSelection = (): void => {
         rl.question(`Select configuration to use (1-${sources.length}): `, (answer) => {
           const selection = parseInt(answer.trim());
           

@@ -17,8 +17,8 @@ export class OpenBaoProvider implements Provider {
   private token: string;
 
   constructor(config?: any) {
-    this.baseUrl = config?.address || 'http://127.0.0.1:8200';
-    this.token = config?.token || '';
+    this.baseUrl = config?.address || process.env.OPENBAO_ADDR || 'http://127.0.0.1:8200';
+    this.token = config?.token || process.env.OPENBAO_TOKEN || '';
 
     if (!this.token) {
       throw new ProviderError('OPENBAO_TOKEN environment variable is required for OpenBao provider');
