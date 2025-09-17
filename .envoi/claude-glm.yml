@@ -9,7 +9,7 @@ providers:
 # Default command to execute when no command-line arguments are provided
 command:
   default: "claude"
-  description: "Run Claude Code"
+  description: "Run Claude Code using z.ai API (GLM 4.5)"
   
 variables:
   - name: ANTHROPIC_BASE_URL
