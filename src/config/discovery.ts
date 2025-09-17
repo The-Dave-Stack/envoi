@@ -47,7 +47,7 @@ export class ConfigDiscovery {
           configs.push(projectConfig);
           sources.push({ type: 'project', path: projectConfigPath, configName });
         }
-      } catch (error) {
+      } catch {
         Logger.debug(`[ConfigDiscovery] Project config not found: ${projectConfigPath}`);
       }
     }
@@ -61,7 +61,7 @@ export class ConfigDiscovery {
           configs.push(userConfig);
           sources.push({ type: 'user', path: userConfigPath, configName });
         }
-      } catch (error) {
+      } catch {
         Logger.debug(`[ConfigDiscovery] User config not found: ${userConfigPath}`);
       }
     }
@@ -74,7 +74,7 @@ export class ConfigDiscovery {
           configs.push(legacyConfig);
           sources.push({ type: 'legacy', path: legacyConfigPath });
         }
-      } catch (error) {
+      } catch {
         Logger.debug(`[ConfigDiscovery] Legacy config not found: ${legacyConfigPath}`);
       }
     }
