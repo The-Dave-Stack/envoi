@@ -87,7 +87,18 @@ export class ConfigDiscovery {
       );
     }
 
-    // Merge configurations (project overrides user, both override legacy)
+    // Check if we have multiple configurations with the same name
+    if (configs.length > 1) {
+      const selectedIndex = await this.promptConfigSelection(sources, configs);
+      const selectedConfig = configs[selectedIndex];
+      const selectedSource = sources[selectedIndex];
+      
+      Logger.info(`[ConfigDiscovery] Selected configuration: ${selectedSource.type}: ${selectedSource.path}`);
+      
+      return { config: selectedConfig, sources: [selectedSource] };
+    }
+
+    // Single configuration case
     const mergedConfig = this.mergeConfigs(configs.reverse());
 
     Logger.info(`[ConfigDiscovery] Loaded configuration from ${sources.length} source(s):`);
@@ -155,6 +166,50 @@ export class ConfigDiscovery {
         throw error;
       }
     }
+  }
+
+  private static async promptConfigSelection(sources: ConfigSource[], configs: EnvoiConfig[]): Promise<number> {
+    // Check if we should use non-interactive mode
+    if (process.env.ENVOI_NO_PROMPT || process.argv.includes('--no-prompt')) {
+      // Default to project configuration in non-interactive mode
+      const projectIndex = sources.findIndex(s => s.type === 'project');
+      return projectIndex >= 0 ? projectIndex : 0;
+    }
+
+    const readline = await import('readline');
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    console.log(`\nMultiple configurations found for '${sources[0].configName}':`);
+    
+    sources.forEach((source, index) => {
+      const config = configs[index];
+      const description = config.frontmatter?.description || 'No description';
+      console.log(`\n${index + 1}. ${source.type.charAt(0).toUpperCase() + source.type.slice(1)}: ${source.path}`);
+      console.log(`   ${description}`);
+    });
+
+    console.log('');
+
+    return new Promise((resolve) => {
+      const askForSelection = () => {
+        rl.question(`Select configuration to use (1-${sources.length}): `, (answer) => {
+          const selection = parseInt(answer.trim());
+          
+          if (isNaN(selection) || selection < 1 || selection > sources.length) {
+            console.log(`Please enter a number between 1 and ${sources.length}`);
+            askForSelection();
+          } else {
+            rl.close();
+            resolve(selection - 1);
+          }
+        });
+      };
+
+      askForSelection();
+    });
   }
 
   private static mergeConfigs(configs: EnvoiConfig[]): EnvoiConfig {
