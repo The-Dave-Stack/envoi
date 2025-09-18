@@ -1,0 +1,10 @@
+variables: []
+providers:
+  local:
+    type: local
+    enabled: true
+    config:
+      file: .env
+command:
+  default: echo "Hello from envoi"
+  description: Default command

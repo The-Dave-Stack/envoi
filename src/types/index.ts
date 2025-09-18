@@ -29,5 +29,6 @@ export type {
   CommandConfig,
   ProviderConfig,
   ProvidersConfig,
+  Frontmatter,
   EnvoiConfig,
 } from '../config/schema';

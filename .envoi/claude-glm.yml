@@ -3,13 +3,13 @@ providers:
     type: openbao
     enabled: true
     config:
-      address: "${OPENBAO_ADDR}"
+      address: "http://127.0.0.1:8200"
       token: "${OPENBAO_TOKEN}"
 
 # Default command to execute when no command-line arguments are provided
 command:
   default: "claude"
-  description: "Run Claude Code"
+  description: "Run Claude Code using z.ai API (GLM 4.5)"
   
 variables:
   - name: ANTHROPIC_BASE_URL

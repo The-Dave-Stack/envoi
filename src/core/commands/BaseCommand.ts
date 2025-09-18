@@ -1,10 +1,11 @@
+import * as path from 'path';
 import { ProgramCommand, ProgramOption } from '../../types';
 
 import { EnvoiConfig } from '../../config/schema';
 import { EnvoiError } from '../../utils/errors';
 import { Logger } from '../../utils/logger';
 import { filterDisabledProviders } from '../../utils/provider-filter';
-import { loadConfig } from '../../config/loader';
+import { ConfigDiscovery } from '../../config/discovery';
 import { providerRegistry } from '../../providers/registry';
 import { registerProvidersFromConfig } from '../../providers/dynamic-registration';
 
@@ -13,20 +14,65 @@ export abstract class BaseCommand implements ProgramCommand {
   abstract description: string;
   abstract options: ProgramOption[];
   
-  protected async setupEnvironment(configPath: string, verbose: boolean): Promise<EnvoiConfig> {
+  protected async setupEnvironment(
+    configPath: string,
+    verbose: boolean,
+    configName?: string,
+    options: {
+      userConfigDir?: string;
+      projectConfigDir?: string;
+      legacyConfigPath?: string;
+      userConfigOnly?: boolean;
+      projectConfigOnly?: boolean;
+    } = {}
+  ): Promise<EnvoiConfig> {
     Logger.setDebug(verbose);
     
-    // Load configuration first to determine which providers to register
     let config;
+    let sources = [];
+    
     try {
-      config = await loadConfig(configPath);
+      if (options.userConfigOnly) {
+        // Load only user configuration
+        if (configName) {
+          const userConfigPath = path.join(options.userConfigDir || path.join(require('os').homedir(), '.envoi'), `${configName}.yml`);
+          config = await require('../../config/loader').loadConfig(userConfigPath);
+          sources = [{ type: 'user', path: userConfigPath, configName }];
+        } else {
+          throw new EnvoiError('Config name is required when using --user-config-only');
+        }
+      } else if (options.projectConfigOnly) {
+        // Load only project configuration
+        if (configName) {
+          const projectConfigPath = path.join(options.projectConfigDir || '.envoi', `${configName}.yml`);
+          config = await require('../../config/loader').loadConfig(projectConfigPath);
+          sources = [{ type: 'project', path: projectConfigPath, configName }];
+        } else {
+          throw new EnvoiError('Config name is required when using --project-config-only');
+        }
+      } else {
+        // Use configuration discovery
+        const discoveryOptions: any = {
+          configName,
+          legacyConfigPath: configPath
+        };
+        if (options.userConfigDir) discoveryOptions.userConfigDir = options.userConfigDir;
+        if (options.projectConfigDir) discoveryOptions.projectConfigDir = options.projectConfigDir;
+        
+        const result = await ConfigDiscovery.discoverConfig(discoveryOptions);
+        config = result.config;
+        sources = result.sources;
+      }
     } catch (error) {
       console.error('Config loading error:', error);
       throw error;
     }
     
     if (verbose) {
-      Logger.info(`[BaseCommand] Loaded configuration from ${configPath}`);
+      Logger.info(`[BaseCommand] Loaded configuration from ${sources.length} source(s):`);
+      sources.forEach(source => {
+        Logger.info(`[BaseCommand]  - ${source.type}: ${source.path}`);
+      });
     }
     
     // Register providers based on configuration

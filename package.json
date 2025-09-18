@@ -1,5 +1,5 @@
 {
-  "name": "envoi",
+  "name": "@tds/envoi",
   "version": "0.1.0",
   "description": "Environment-agnostic configuration orchestrator with OpenBao and HashiCorp Vault support",
   "main": "dist/index.js",
@@ -16,7 +16,8 @@
     "clean": "rimraf dist",
     "clean:all": "rimraf dist node_modules package-lock.json",
     "prepublishOnly": "npm run clean && npm run build",
-    "envoi:test": "echo \"This is a test\""
+    "envoi:test": "echo \"This is a test\"",
+    "validate-changelog": "node -e \"const pkg = require('./package.json'); const fs = require('fs'); const changelog = fs.readFileSync('CHANGELOG.md', 'utf8'); if (!changelog.includes(pkg.version)) { console.error('Version', pkg.version, 'not found in changelog'); process.exit(1); } else { console.log('Changelog validation passed for version', pkg.version); }\""
   },
   "keywords": [
     "environment",
@@ -32,7 +33,7 @@
   "author": "David (The Dave Stack)",
   "license": "MIT",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
     "dependencies": {
     "chalk": "^4.1.2",

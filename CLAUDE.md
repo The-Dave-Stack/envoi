@@ -4,7 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-`envoi` is a CLI tool for environment-agnostic configuration orchestration. It provides a single source of truth (`envoi.yml`) for managing environment variables across different environments (local, staging, production) with support for multiple providers like `.env` files, HashiCorp Vault, and OpenBao.
+`envoi` is a CLI tool for environment-agnostic configuration orchestration. It provides a single source of truth for managing environment variables across different environments (local, staging, production) with support for multiple providers like `.env` files, HashiCorp Vault, and OpenBao. 
+
+### Key Features
+- **Named Configuration Execution**: Execute configurations with `envoi [config_name]` syntax
+- **Dual Configuration System**: Support for user (~/.envoi/) and project (./.envoi/) directories
+- **Configuration Management**: Create, list, show, edit, and remove named configurations
+- **Priority-based Configuration Merging**: project > user > legacy for flexible configuration
+- **Multiple Providers**: Support for `.env` files, HashiCorp Vault, and OpenBao
+- **Default Command Configuration**: Set default commands in configuration files with command-line override
 
 ## Common Commands
 
@@ -47,6 +55,14 @@ node dist/index.js exec "node server.js"  # Override default command
 
 # Test env command with command configuration display
 node dist/index.js env  # Shows variables and default command if configured
+
+# Test named configuration system
+node dist/index.js config init              # Initialize configuration directories
+node dist/index.js config create dev        # Create development config
+node dist/index.js config ls                 # List configurations
+node dist/index.js dev                       # Execute named configuration
+node dist/index.js dev "npm run build"       # Override command in named config
+node dist/index.js config show dev           # Show configuration details
 ```
 
 ### Colored Logging
@@ -76,13 +92,21 @@ Use `--verbose` flag to see detailed debug information with colored output.
 
 **Core Engine** (`src/core/`):
 - `resolver.ts`: Main logic for variable resolution and subprocess execution
+- `commands/`: Command implementations (BaseCommand, ExecCommand, EnvCommand, ConfigCommand, MainConfigCommand)
+- `infrastructure/`: Command infrastructure (CommandDiscovery, CommandRegistry)
+
+**Configuration System** (`src/config/`):
+- `loader.ts`: Loads and parses `envoi.yml` files with YAML parsing
+- `schema.ts`: Zod validation schemas for type safety
+- `discovery.ts`: Configuration discovery and loading system for dual configuration support
 
 **Utilities** (`src/utils/`):
 - `logger.ts`: Centralized colorized logging system with support for different log levels
+- `errors.ts`: Custom error classes for better error handling
 
 **CLI Entry Point** (`src/index.ts`):
 - Commander.js-based CLI interface
-- Provider registration on startup
+- Dynamic command registration and discovery
 
 ### Key Design Patterns
 
@@ -91,6 +115,22 @@ Use `--verbose` flag to see detailed debug information with colored output.
 **Security**: No secret caching - variables loaded directly into subprocess environment
 **Validation**: Zod schema validation ensures configuration integrity
 **Provider Configuration**: Optional providers object for enabling/disabling specific providers
+**Command Discovery**: Dynamic command loading and registration system
+**Dual Configuration System**: Support for user and project configuration directories with priority-based merging
+**Named Configuration Execution**: Execute configurations by name with simple syntax
+
+### Directory Structure
+
+```
+src/
+├── config/           # Configuration loading and validation
+├── core/             # Core engine and command system
+│   ├── commands/     # Command implementations only
+│   └── infrastructure/ # Command discovery and registry
+├── providers/        # Variable providers (local, vault, openbao)
+├── utils/           # Utilities (logger, errors)
+└── index.ts         # CLI entry point
+```
 
 ### Environment Variable Resolution Flow
 
@@ -110,6 +150,59 @@ interface Provider {
 ```
 
 ## Configuration Structure
+
+### Dual Configuration System
+
+Envoi supports a dual configuration system with different scopes:
+
+**Project Configurations** (`./.envoi/`):
+- Specific to the current project
+- Stored in the project root directory
+- Override user configurations
+- Ideal for project-specific settings
+
+**User Configurations** (`~/.envoi/`):
+- Available across all projects
+- Stored in the user's home directory
+- Provide default configurations
+- Perfect for personal development settings
+
+**Configuration Priority Order** (highest to lowest):
+1. **Project configuration** (`./.envoi/{name}.yml`)
+2. **User configuration** (`~/.envoi/{name}.yml`)  
+3. **Legacy configuration** (`envoi.yml`)
+
+### Configuration Files
+
+Named configuration files follow the same structure as `envoi.yml` but are stored in the configuration directories:
+
+```yaml
+# .envoi/dev.yml
+variables:
+  - name: NODE_ENV
+    default: "development"
+  - name: DATABASE_URL
+    required: true
+
+providers:
+  local:
+    type: local
+    enabled: true
+    config:
+      file: .env
+
+sources:
+  DATABASE_URL:
+    type: local
+    file: .env
+    key: DEV_DATABASE_URL
+
+command:
+  default: "npm run dev"
+  description: "Start development server"
+```
+
+### Legacy Configuration
 
 `envoi.yml` defines:
 - `variables`: Array of variable definitions with metadata
@@ -222,8 +315,18 @@ Custom error classes provide clear feedback:
 
 Tests in `__tests__/` cover:
 - Configuration loading and validation
+- Configuration discovery and dual configuration system
 - Provider functionality (local, vault, openbao)
 - Variable resolution logic
 - Provider configuration system
+- Command discovery and registration
+- Named configuration execution
 
-Test setup includes provider registration via `providerRegistry` to ensure isolation from main CLI initialization.
+Test setup includes provider registration via `providerRegistry` and command discovery via `CommandDiscovery` to ensure isolation from main CLI initialization.
+
+### Code Organization Principles
+
+1. **Commands Directory**: Only contains actual command implementations (BaseCommand, ExecCommand, EnvCommand, ConfigCommand, MainConfigCommand)
+2. **Infrastructure Directory**: Contains supporting infrastructure (CommandDiscovery, CommandRegistry)
+3. **Clear Separation**: Commands are separated from their discovery and registration mechanisms
+4. **Modular Design**: Each component has a single responsibility and can be tested independently

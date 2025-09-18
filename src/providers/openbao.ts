@@ -19,11 +19,9 @@ export class OpenBaoProvider implements Provider {
   constructor(config?: any) {
     this.baseUrl = config?.address || process.env.OPENBAO_ADDR || 'http://127.0.0.1:8200';
     this.token = config?.token || process.env.OPENBAO_TOKEN || '';
-    
+
     if (!this.token) {
-      throw new ProviderError(
-        'OPENBAO_TOKEN environment variable is required for OpenBao provider'
-      );
+      throw new ProviderError('OPENBAO_TOKEN environment variable is required for OpenBao provider');
     }
   }
 
@@ -42,38 +40,34 @@ export class OpenBaoProvider implements Provider {
 
     try {
       const url = `${this.baseUrl}/v1/${source.path}`;
+      const headers = {
+        'X-Vault-Token': this.token,
+        'Content-Type': 'application/json',
+        ...(source.namespace && { 'X-Vault-Namespace': source.namespace })
+      };
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'X-Vault-Token': this.token,
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
-        throw new ProviderError(
-          `OpenBao API request failed: ${response.status} ${response.statusText}`
-        );
+        throw new ProviderError(`OpenBao API request failed: ${response.status} ${response.statusText}`);
       }
 
-      const result: OpenBaoResponse = await response.json() as OpenBaoResponse;
-      
+      const result: OpenBaoResponse = (await response.json()) as OpenBaoResponse;
+
       if (!result || !result.data || !result.data.data) {
         throw new ProviderError(`No data found at OpenBao path: ${source.path}`);
       }
 
       const value = result.data.data[source.key];
-      
+
       if (value === undefined || value === null) {
-        throw new ProviderError(
-          `Key "${source.key}" not found in OpenBao secret at path: ${source.path}`
-        );
+        throw new ProviderError(`Key "${source.key}" not found in OpenBao secret at path: ${source.path}`);
       }
 
       if (typeof value !== 'string') {
-        throw new ProviderError(
-          `Expected string value for key "${source.key}", but got ${typeof value}`
-        );
+        throw new ProviderError(`Expected string value for key "${source.key}", but got ${typeof value}`);
       }
 
       return value;
@@ -81,16 +75,12 @@ export class OpenBaoProvider implements Provider {
       if (error instanceof ProviderError) {
         throw error;
       }
-      
+
       if (error && typeof error === 'object' && 'message' in error) {
-        throw new ProviderError(
-          `Failed to read from OpenBao at ${source.path}: ${error.message}`
-        );
+        throw new ProviderError(`Failed to read from OpenBao at ${source.path}: ${error.message}`);
       }
-      
-      throw new ProviderError(
-        `Failed to read from OpenBao at ${source.path}: ${error}`
-      );
+
+      throw new ProviderError(`Failed to read from OpenBao at ${source.path}: ${error}`);
     }
   }
 }

@@ -11,20 +11,55 @@ export async function loadConfig(configPath: string): Promise<EnvoiConfig> {
   try {
     const absolutePath = path.resolve(configPath);
     const content = await fs.readFile(absolutePath, 'utf-8');
-    const data = yaml.parse(content);
     
-    return validateConfig(data);
+    // Parse frontmatter if present
+    const { frontmatter, configContent } = parseFrontmatter(content);
+    
+    // Parse the main configuration content
+    const configData = yaml.parse(configContent);
+    
+    // Merge frontmatter with configuration
+    const finalConfig = {
+      ...configData,
+      frontmatter
+    };
+    
+    return validateConfig(finalConfig);
   } catch (error) {
-    Logger.errorWithContext('[Loader] Failed to load configuration:', error);
     if (error instanceof Error) {
       if (error.message.includes('ENOENT')) {
+        // Don't log errors for missing files - this is expected behavior during config discovery
         throw new EnvoiError(`Configuration file not found: ${configPath}`);
       }
       if (error.name === 'YAMLParseError') {
+        Logger.errorWithContext(`[Loader] Invalid YAML in configuration file: ${configPath}`, error);
         throw new EnvoiError(`Invalid YAML in configuration file: ${error.message}`);
       }
     }
     
+    // Only log unexpected errors
+    Logger.errorWithContext('[Loader] Failed to load configuration:', error);
     throw new EnvoiError(`Failed to load configuration: ${error}`);
+  }
+}
+
+function parseFrontmatter(content: string): { frontmatter: any; configContent: string } {
+  const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
+  const match = content.match(frontmatterRegex);
+  
+  if (!match) {
+    // No frontmatter found, return empty frontmatter and original content
+    return { frontmatter: {}, configContent: content };
+  }
+  
+  const [, frontmatterContent, configContent] = match;
+  
+  try {
+    const frontmatter = yaml.parse(frontmatterContent);
+    return { frontmatter, configContent: configContent.trim() };
+  } catch (error) {
+    Logger.warn(`[Loader] Failed to parse frontmatter, treating as regular content: ${error}`);
+    // If frontmatter parsing fails, treat entire content as config
+    return { frontmatter: {}, configContent: content };
   }
 }
