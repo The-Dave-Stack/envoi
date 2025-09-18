@@ -1,5 +1,5 @@
 {
-  "name": "@tds/envoi",
+  "name": "envoi",
   "version": "0.1.0",
   "description": "Environment-agnostic configuration orchestrator with OpenBao and HashiCorp Vault support",
   "main": "dist/index.js",
@@ -17,7 +17,10 @@
     "clean:all": "rimraf dist node_modules package-lock.json",
     "prepublishOnly": "npm run clean && npm run build",
     "envoi:test": "echo \"This is a test\"",
-    "validate-changelog": "node -e \"const pkg = require('./package.json'); const fs = require('fs'); const changelog = fs.readFileSync('CHANGELOG.md', 'utf8'); if (!changelog.includes(pkg.version)) { console.error('Version', pkg.version, 'not found in changelog'); process.exit(1); } else { console.log('Changelog validation passed for version', pkg.version); }\""
+    "validate-changelog": "node -e \"const pkg = require('./package.json'); const fs = require('fs'); const changelog = fs.readFileSync('CHANGELOG.md', 'utf8'); if (!changelog.includes(pkg.version)) { console.error('Version', pkg.version, 'not found in changelog'); process.exit(1); } else { console.log('Changelog validation passed for version', pkg.version); }\"",
+    "changelog:add": "node scripts/changelog-add.js",
+    "changelog:release": "node scripts/changelog-release.js",
+    "changelog:verify": "node scripts/changelog-verify.js"
   },
   "keywords": [
     "environment",

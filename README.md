@@ -421,13 +421,26 @@ envoi exec -- npm start
 
 ## Release Process
 
-Envoi uses a manual release process to ensure proper versioning and changelog management. Follow these steps to create a new release:
+Envoi uses a manual release process with automated changelog management to ensure proper versioning. Follow these steps to create a new release:
 
 ### 1. Prepare the Release
 
-1. **Update Changelog**: Add all changes since the last release to `CHANGELOG.md` under the [Unreleased] section
-2. **Run Tests**: Ensure all tests pass and code is properly linted
-3. **Build Project**: Verify the build completes successfully
+1. **Verify Changelog**: Check current changelog status
+   ```bash
+   npm run changelog:verify
+   ```
+
+2. **Update Changelog**: Add changes to the [Unreleased] section manually in `CHANGELOG.md`
+
+3. **Run Tests**: Ensure all tests pass and code is properly linted
+   ```bash
+   npm test && npm run lint
+   ```
+
+4. **Build Project**: Verify the build completes successfully
+   ```bash
+   npm run build
+   ```
 
 ### 2. Version Bump
 
@@ -444,25 +457,31 @@ npm version minor --no-git-tag-version
 npm version major --no-git-tag-version
 ```
 
-### 3. Update Changelog
+### 3. Update Changelog for Release
 
-Move all changes from [Unreleased] to a new version section in `CHANGELOG.md`:
+Use the automated script to create the release section:
 
-```markdown
-## [0.1.1] - 2025-09-18
-
-### Added
-- New feature
-
-### Fixed
-- Bug fix
-
-## [Unreleased]
+```bash
+# This will move [Unreleased] content to a new version section
+npm run changelog:release <version>
+# Example: npm run changelog:release 0.1.1
 ```
 
-Also update the version links at the bottom of the file.
+The script will:
+- Move all content from [Unreleased] to a new version section
+- Add the current date
+- Create a new [Unreleased] section
+- Update version links at the bottom of the file
 
-### 4. Commit and Tag
+### 4. Add New Unreleased Section (Optional)
+
+If you're planning multiple releases, add a new unreleased section:
+
+```bash
+npm run changelog:add
+```
+
+### 5. Commit and Tag
 
 ```bash
 # Commit changes
@@ -476,7 +495,7 @@ git tag v0.1.1
 git push origin main --follow-tags
 ```
 
-### 5. Create GitHub Release
+### 6. Create GitHub Release
 
 1. Go to: https://github.com/The-Dave-Stack/envoi/releases
 2. Click "Create a new release"
@@ -484,7 +503,7 @@ git push origin main --follow-tags
 4. Add release notes from the changelog
 5. Click "Publish release"
 
-### 6. Automated npm Publish
+### 7. Automated npm Publish
 
 Once the release is created and pushed to main, the CI/CD workflow will automatically:
 - Run all tests
