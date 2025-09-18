@@ -109,3 +109,4 @@ coverage/
 
 # Openbao
 unseal
+.mcp.json

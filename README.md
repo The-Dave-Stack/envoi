@@ -419,6 +419,95 @@ envoi exec -- npm start
   - **Test:** `npm test` or `npm run test:watch`
   - **Lint:** `npm run lint` or `npm run lint:fix`
 
+## Release Process
+
+Envoi uses a manual release process to ensure proper versioning and changelog management. Follow these steps to create a new release:
+
+### 1. Prepare the Release
+
+1. **Update Changelog**: Add all changes since the last release to `CHANGELOG.md` under the [Unreleased] section
+2. **Run Tests**: Ensure all tests pass and code is properly linted
+3. **Build Project**: Verify the build completes successfully
+
+### 2. Version Bump
+
+Update the version in `package.json` following semantic versioning:
+
+```bash
+# Patch version (bug fixes)
+npm version patch --no-git-tag-version
+
+# Minor version (new features)
+npm version minor --no-git-tag-version
+
+# Major version (breaking changes)
+npm version major --no-git-tag-version
+```
+
+### 3. Update Changelog
+
+Move all changes from [Unreleased] to a new version section in `CHANGELOG.md`:
+
+```markdown
+## [0.1.1] - 2025-09-18
+
+### Added
+- New feature
+
+### Fixed
+- Bug fix
+
+## [Unreleased]
+```
+
+Also update the version links at the bottom of the file.
+
+### 4. Commit and Tag
+
+```bash
+# Commit changes
+git add package.json CHANGELOG.md
+git commit -m "chore(release): 0.1.1"
+
+# Create tag
+git tag v0.1.1
+
+# Push to GitHub
+git push origin main --follow-tags
+```
+
+### 5. Create GitHub Release
+
+1. Go to: https://github.com/The-Dave-Stack/envoi/releases
+2. Click "Create a new release"
+3. Select the tag you just created (e.g., v0.1.1)
+4. Add release notes from the changelog
+5. Click "Publish release"
+
+### 6. Automated npm Publish
+
+Once the release is created and pushed to main, the CI/CD workflow will automatically:
+- Run all tests
+- Build the project
+- Publish to npm registry
+
+### Release Checklist
+
+- [ ] All tests pass
+- [ ] Code is properly linted
+- [ ] Changelog is updated
+- [ ] Version is bumped correctly
+- [ ] Git tag is created
+- [ ] GitHub release is created
+- [ ] npm publish completes successfully
+
+### CI/CD Workflow
+
+The `.github/workflows/ci.yml` workflow:
+- Runs tests on every push and pull request
+- Publishes to npm only on pushes to main branch
+- Can be manually triggered via GitHub Actions UI
+
 -----
 
 ## Version History
@@ -469,4 +558,4 @@ The detailed version history is available in the `CHANGELOG.md` file.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.# Automated Release Workflow Test
+This project is licensed under the MIT License - see the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
