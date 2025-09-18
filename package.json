@@ -1,5 +1,5 @@
 {
-  "name": "envoi",
+  "name": "@thedavestack/envoi",
   "version": "0.1.0",
   "description": "Environment-agnostic configuration orchestrator with OpenBao and HashiCorp Vault support",
   "main": "dist/index.js",
