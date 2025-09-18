@@ -8,7 +8,10 @@
       "Bash(npm install:*)",
       "Bash(npm test)",
       "Bash(npm run clean:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "ask": []

@@ -59,6 +59,107 @@ jobs:
         name: build-files
         path: dist/
 
+  # Automated release job that triggers on push to main
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Use Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: 'npm'
+        registry-url: 'https://registry.npmjs.org'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+    
+    - name: Get current version
+      id: version
+      run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+    
+    - name: Check if version already exists as release
+      id: check_release
+      run: |
+        if gh release view v${{ steps.version.outputs.VERSION }} --json tagName -q '.tagName' 2>/dev/null; then
+          echo "EXISTS=true" >> $GITHUB_OUTPUT
+        else
+          echo "EXISTS=false" >> $GITHUB_OUTPUT
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Analyze commits for version bump
+      id: bump_type
+      if: steps.check_release.outputs.EXISTS == 'false'
+      run: |
+        BUMP_TYPE=$(npm run analyze-commits | grep 'BUMP_TYPE=' | cut -d'=' -f2)
+        echo "BUMP_TYPE=$BUMP_TYPE" >> $GITHUB_OUTPUT
+        echo "CURRENT_VERSION=${{ steps.version.outputs.VERSION }}" >> $GITHUB_OUTPUT
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Update package.json version
+      id: update_version
+      if: steps.check_release.outputs.EXISTS == 'false' && steps.bump_type.outputs.BUMP_TYPE != 'none'
+      run: |
+        npm run bump-version -- --${{ steps.bump_type.outputs.BUMP_TYPE }}
+        NEW_VERSION=$(node -p "require('./package.json').version")
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "UPDATED_VERSION=true" >> $GITHUB_OUTPUT
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Update CHANGELOG.md
+      if: steps.update_version.outputs.UPDATED_VERSION == 'true'
+      run: |
+        npm run update-changelog ${{ steps.update_version.outputs.NEW_VERSION }}
+    
+    - name: Commit version changes
+      if: steps.update_version.outputs.UPDATED_VERSION == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add package.json CHANGELOG.md
+        git commit -m "chore(release): ${{ steps.update_version.outputs.NEW_VERSION }}"
+        git tag v${{ steps.update_version.outputs.NEW_VERSION }}
+        git push origin main --follow-tags
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Create GitHub Release
+      if: steps.update_version.outputs.UPDATED_VERSION == 'true'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.update_version.outputs.NEW_VERSION }}
+        release_name: v${{ steps.update_version.outputs.NEW_VERSION }}
+        body: |
+          Release v${{ steps.update_version.outputs.NEW_VERSION }}
+          
+          ## Changes
+          $(git log --pretty=format:'- %s' $(git describe --tags --abbrev=0)..HEAD)
+        draft: false
+        prerelease: false
+    
+    - name: Publish to npm
+      if: steps.update_version.outputs.UPDATED_VERSION == 'true'
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # Original release job for manual releases
   publish:
     needs: test
     runs-on: ubuntu-latest

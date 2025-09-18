@@ -1,9 +1,19 @@
+---
+name: "Claude Code Runner using z.ai API (GLM 4.5)"
+description: "Configuration to initialize Claude Code using z.ai API (GLM 4.5) and secrets from OpenBao."
+tags:
+  - claude
+  - z.ai
+  - ai
+  - openbao
+---
+
 providers:  
   openbao:
     type: openbao
     enabled: true
     config:
-      address: "http://127.0.0.1:8200"
+      address: "https://openbao.thedavestack.com"
       token: "${OPENBAO_TOKEN}"
 
 # Default command to execute when no command-line arguments are provided
@@ -17,16 +27,19 @@ variables:
     description: "Claude Code API base URL"
     source:
       type: openbao
-      path: secrets/data/claude_glm
+      path: local/data/aiassistants
+      namespace: tds
   - name: ANTHROPIC_AUTH_TOKEN
     required: true
     description: "Claude Code API authentication token"
     source:
       type: openbao
-      path: secrets/data/claude_glm
+      path: local/data/aiassistants
+      namespace: tds
   - name: DOKPLOY_TDS_API_KEY
     required: true
     description: "Dokploy API key for TDS"
     source:
       type: openbao
-      path: secrets/data/mcp
+      path: local/data/mcp
+      namespace: tds
