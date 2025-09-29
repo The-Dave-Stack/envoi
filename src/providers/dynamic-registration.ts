@@ -11,12 +11,12 @@ export function registerProvidersFromConfig(config: EnvoiConfig, verbose: boolea
   
   if (!config.providers) {
     Logger.debug('[DymanicResgistration] No providers configuration found, using defaults');
-    // Register local provider as default if no providers config
+    // Register file provider as default if no providers config
     try {
-      providerRegistry.register(ProviderFactory.create('local'));
-      Logger.debug('[DymanicResgistration] Registered default local provider');
+      providerRegistry.register(ProviderFactory.create('file'));
+      Logger.debug('[DymanicResgistration] Registered default file provider');
     } catch (error) {
-      Logger.warn(`[DymanicResgistration] Failed to register default local provider: ${error}`);
+      Logger.warn(`[DymanicResgistration] Failed to register default file provider: ${error}`);
     }
     return;
   }

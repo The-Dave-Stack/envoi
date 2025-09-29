@@ -1,13 +1,12 @@
-import { LocalProvider } from './local';
+import { FileProvider } from './local';
 import { Provider } from '../types';
 import { ProviderError } from '../utils/errors';
-import { VaultProvider } from './vault';
 import { substituteEnvVarsInObject } from '../utils/env-substitution';
+import { PROVIDER_TYPES } from '../config/schema';
 
 export class ProviderFactory {
   private static providerClasses = {
-    local: LocalProvider,
-    vault: VaultProvider,
+    file: FileProvider,
   };
 
   // Try to import OpenBaoProvider if available
@@ -48,10 +47,6 @@ export class ProviderFactory {
   }
 
   static getAvailableProviders(): string[] {
-    const providers = Object.keys(this.providerClasses);
-    if (this.getOpenBaoProvider()) {
-      providers.push('openbao');
-    }
-    return providers;
+    return [...PROVIDER_TYPES];
   }
 }

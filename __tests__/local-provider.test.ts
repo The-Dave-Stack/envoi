@@ -1,13 +1,13 @@
-import { LocalProvider } from '../src/providers/local';
+import { FileProvider } from '../src/providers/local';
 import { VariableSource } from '../src/types';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-describe('LocalProvider', () => {
-  const testEnvPath = path.join(__dirname, 'test-local.env');
+describe('FileProvider', () => {
+  const testEnvPath = path.join(__dirname, 'test-file.env');
   
   const createProvider = (configFile?: string) => {
-    return new LocalProvider(configFile ? { file: configFile } : { file: '.env' });
+    return new FileProvider(configFile ? { file: configFile } : { file: '.env' });
   };
 
   beforeEach(async () => {
@@ -25,7 +25,7 @@ describe('LocalProvider', () => {
   test('should resolve variable from .env file', async () => {
     const provider = createProvider();
     const source: VariableSource = {
-      type: 'local',
+      type: 'file',
       file: testEnvPath,
       key: 'TEST_KEY'
     };
@@ -37,7 +37,7 @@ describe('LocalProvider', () => {
   test('should throw error for non-existent file', async () => {
     const provider = createProvider();
     const source: VariableSource = {
-      type: 'local',
+      type: 'file',
       file: 'non-existent.env',
       key: 'TEST_KEY'
     };
@@ -50,7 +50,7 @@ describe('LocalProvider', () => {
   test('should throw error for missing key', async () => {
     const provider = createProvider();
     const source: VariableSource = {
-      type: 'local',
+      type: 'file',
       file: testEnvPath,
       key: 'MISSING_KEY'
     };
@@ -68,7 +68,7 @@ describe('LocalProvider', () => {
     } as any;
 
     await expect(provider.resolve(source)).rejects.toThrow(
-      'LocalProvider cannot handle source type: vault'
+      'FileProvider cannot handle source type: vault'
     );
   });
 });

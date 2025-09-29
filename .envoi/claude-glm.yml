@@ -36,6 +36,20 @@ variables:
       type: openbao
       path: local/data/aiassistants
       namespace: tds
+  - name: ANTHROPIC_MODEL
+    required: true
+    description: "Claude Code model to use"
+    source:
+      type: openbao
+      path: local/data/aiassistants
+      namespace: tds
+  - name: ANTHROPIC_SMALL_FAST_MODEL
+    required: true
+    description: "Claude Code small fasth model to use"
+    source:
+      type: openbao
+      path: local/data/aiassistants
+      namespace: tds
   - name: DOKPLOY_TDS_API_KEY
     required: true
     description: "Dokploy API key for TDS"

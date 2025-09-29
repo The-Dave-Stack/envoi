@@ -7,7 +7,7 @@ describe('Provider Filtering', () => {
     providerRegistry.clear();
     // Register a mock provider for testing
     providerRegistry.register({
-      name: 'local',
+      name: 'file',
       resolve: jest.fn()
     });
   });
@@ -15,32 +15,30 @@ describe('Provider Filtering', () => {
   test('should filter out variables that use disabled providers', () => {
     const config: EnvoiConfig = {
       variables: [
-        { name: 'LOCAL_VAR', required: false, description: 'Local variable', source: { type: 'local', key: 'local_key' } },
-        { name: 'VAULT_VAR', required: false, description: 'Vault variable', source: { type: 'vault', key: 'vault_key' } },
+        { name: 'FILE_VAR', required: false, description: 'File variable', source: { type: 'file', key: 'file_key' } },
         { name: 'OPENBAO_VAR', required: false, description: 'OpenBao variable', source: { type: 'openbao', key: 'openbao_key' } },
       ],
       providers: {
-        local: { type: 'local', enabled: true, config: {} },
-        vault: { type: 'vault', enabled: false, config: {} },
+        file: { type: 'file', enabled: true, config: {} },
         openbao: { type: 'openbao', enabled: false, config: {} },
       }
     };
 
     const filteredConfig = filterDisabledProviders(config);
 
-    // Should only keep the local variable
+    // Should only keep the file variable
     expect(filteredConfig.variables).toHaveLength(1);
-    expect(filteredConfig.variables[0].name).toBe('LOCAL_VAR');
+    expect(filteredConfig.variables[0].name).toBe('FILE_VAR');
   });
 
   test('should keep variables without sources', () => {
     const config: EnvoiConfig = {
       variables: [
         { name: 'NO_SOURCE_VAR', required: false, description: 'Variable without source' },
-        { name: 'VAULT_VAR', required: false, description: 'Vault variable', source: { type: 'vault', key: 'vault_key' } },
+        { name: 'OPENBAO_VAR', required: false, description: 'OpenBao variable', source: { type: 'openbao', key: 'openbao_key' } },
       ],
       providers: {
-        vault: { type: 'vault', enabled: false, config: {} },
+        openbao: { type: 'openbao', enabled: false, config: {} },
       }
     };
 
@@ -54,10 +52,10 @@ describe('Provider Filtering', () => {
   test('should preserve providers and command configuration', () => {
     const config: EnvoiConfig = {
       variables: [
-        { name: 'VAULT_VAR', required: false, description: 'Vault variable', source: { type: 'vault', key: 'vault_key' } },
+        { name: 'OPENBAO_VAR', required: false, description: 'OpenBao variable', source: { type: 'openbao', key: 'openbao_key' } },
       ],
       providers: {
-        vault: { type: 'vault', enabled: false, config: {} },
+        openbao: { type: 'openbao', enabled: false, config: {} },
       },
       command: {
         default: 'npm start',
@@ -84,7 +82,7 @@ describe('Provider Filtering', () => {
         { name: 'VAR2', required: false, description: 'Variable 2' },
       ],
       providers: {
-        local: { type: 'local', enabled: true, config: {} },
+        file: { type: 'file', enabled: true, config: {} },
       }
     };
 

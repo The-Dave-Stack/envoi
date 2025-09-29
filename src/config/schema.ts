@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
+const PROVIDER_TYPES = ['file', 'openbao'] as const;
+
 const VariableSourceSchema = z.object({
-  type: z.enum(['local', 'vault', 'openbao']),
+  type: z.enum(PROVIDER_TYPES),
   file: z.string().optional(),
   key: z.string().optional(),
   path: z.string().optional(),
@@ -22,7 +24,7 @@ const CommandConfigSchema = z.object({
 });
 
 const ProviderConfigSchema = z.object({
-  type: z.enum(['local', 'vault', 'openbao']),
+  type: z.enum(PROVIDER_TYPES),
   enabled: z.boolean().default(true),
   config: z.record(z.string(), z.any()).optional(),
 });
@@ -49,6 +51,7 @@ export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
 export type ProvidersConfig = z.infer<typeof ProvidersConfigSchema>;
 export type Frontmatter = z.infer<typeof FrontmatterSchema>;
 export type EnvoiConfig = z.infer<typeof EnvoiConfigSchema>;
+export { PROVIDER_TYPES };
 
 export function validateConfig(data: unknown): EnvoiConfig {
   return EnvoiConfigSchema.parse(data);

@@ -28,3 +28,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.0]: https://github.com/The-Dave-Stack/envoi/releases/tag/v0.1.0
 ## [Unreleased]
 
+### Changed
+- **Breaking Change**: Renamed `local` provider to `file` provider for better naming consistency
+- **Breaking Change**: Removed HashiCorp Vault provider support
+- **Breaking Change**: Centralized provider types in schema for better maintainability
+- Updated all example configurations to use `file` provider instead of `local`
+- Updated all test files to use `file` provider instead of `local`
+- Enhanced provider factory to use centralized PROVIDER_TYPES constant
+
+### Removed
+- HashiCorp Vault provider support and related code
+- All vault-related test cases and examples
+

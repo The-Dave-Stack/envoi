@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-`envoi` is a CLI tool for environment-agnostic configuration orchestration. It provides a single source of truth for managing environment variables across different environments (local, staging, production) with support for multiple providers like `.env` files, HashiCorp Vault, and OpenBao. 
+`envoi` is a CLI tool for environment-agnostic configuration orchestration. It provides a single source of truth for managing environment variables across different environments (local, staging, production) with support for multiple providers like `.env` files and OpenBao. 
 
 ### Key Features
 - **Named Configuration Execution**: Execute configurations with `envoi [config_name]` syntax
 - **Dual Configuration System**: Support for user (~/.envoi/) and project (./.envoi/) directories
 - **Configuration Management**: Create, list, show, edit, and remove named configurations
 - **Priority-based Configuration Merging**: project > user > legacy for flexible configuration
-- **Multiple Providers**: Support for `.env` files, HashiCorp Vault, and OpenBao
+- **Multiple Providers**: Support for `.env` files and OpenBao
 - **Default Command Configuration**: Set default commands in configuration files with command-line override
 
 ## Common Commands
@@ -85,8 +85,7 @@ Use `--verbose` flag to see detailed debug information with colored output.
 - `schema.ts`: Zod validation schemas for type safety
 
 **Provider System** (`src/providers/`):
-- `local.ts`: Reads variables from `.env` files using dotenv
-- `vault.ts`: Integrates with HashiCorp Vault for secret management
+- `local.ts`: Reads variables from `.env` files using dotenv (renamed to FileProvider)
 - `openbao.ts`: Integrates with OpenBao for secret management
 - `registry.ts`: Registry pattern for extensible provider system
 
@@ -110,7 +109,7 @@ Use `--verbose` flag to see detailed debug information with colored output.
 
 ### Key Design Patterns
 
-**Provider Registry**: Extensible system for adding new providers (local, vault, openbao, etc.)
+**Provider Registry**: Extensible system for adding new providers (file, openbao, etc.)
 **Resolution Priority**: Variables resolve in order: existing env → configured sources → defaults
 **Security**: No secret caching - variables loaded directly into subprocess environment
 **Validation**: Zod schema validation ensures configuration integrity
@@ -127,7 +126,7 @@ src/
 ├── core/             # Core engine and command system
 │   ├── commands/     # Command implementations only
 │   └── infrastructure/ # Command discovery and registry
-├── providers/        # Variable providers (local, vault, openbao)
+├── providers/        # Variable providers (file, openbao)
 ├── utils/           # Utilities (logger, errors)
 └── index.ts         # CLI entry point
 ```
@@ -135,7 +134,7 @@ src/
 ### Environment Variable Resolution Flow
 
 1. Check if variable already exists in `process.env`
-2. If not found, resolve from configured sources (`.env`, Vault, OpenBao)
+2. If not found, resolve from configured sources (`.env`, OpenBao)
 3. If still not found, use default value from `envoi.yml`
 4. If required and no value found, throw validation error
 
@@ -185,15 +184,15 @@ variables:
     required: true
 
 providers:
-  local:
-    type: local
+  file:
+    type: file
     enabled: true
     config:
       file: .env
 
 sources:
   DATABASE_URL:
-    type: local
+    type: file
     file: .env
     key: DEV_DATABASE_URL
 
@@ -244,11 +243,11 @@ Example sources configuration:
 ```yaml
 sources:
   DATABASE_URL:
-    type: local
+    type: file
     file: .env
     key: DB_URL
   SECRET_TOKEN:
-    type: vault
+    type: openbao
     path: secret/data/myapp
     key: api_token
   API_KEY:
@@ -263,8 +262,8 @@ The new provider configuration allows you to enable/disable specific providers:
 
 ```yaml
 providers:
-  local:
-    type: local
+  file:
+    type: file
     enabled: true
     config:
       file: .env
@@ -279,7 +278,7 @@ providers:
 # Sources configuration (still supported for backward compatibility)
 sources:
   DATABASE_URL:
-    type: local
+    type: file
     file: .env
     key: DB_URL
   SECRET_TOKEN:
@@ -316,7 +315,7 @@ Custom error classes provide clear feedback:
 Tests in `__tests__/` cover:
 - Configuration loading and validation
 - Configuration discovery and dual configuration system
-- Provider functionality (local, vault, openbao)
+- Provider functionality (file, openbao)
 - Variable resolution logic
 - Provider configuration system
 - Command discovery and registration

@@ -15,23 +15,23 @@ describe('Dynamic Provider Registration', () => {
     providerRegistry.clear();
   });
 
-  test('should register local provider by default when no providers config', () => {
+  test('should register file provider by default when no providers config', () => {
     const config: EnvoiConfig = {
       variables: [],
     };
 
     registerProvidersFromConfig(config, false);
 
-    expect(providerRegistry.has('local')).toBe(true);
-    expect(providerRegistry.getRegisteredProviders()).toContain('local');
+    expect(providerRegistry.has('file')).toBe(true);
+    expect(providerRegistry.getRegisteredProviders()).toContain('file');
   });
 
   test('should register enabled providers from config', () => {
     const config: EnvoiConfig = {
       variables: [],
       providers: {
-        local: {
-          type: 'local',
+        file: {
+          type: 'file',
           enabled: true,
           config: { file: '.env' }
         }
@@ -40,32 +40,32 @@ describe('Dynamic Provider Registration', () => {
 
     registerProvidersFromConfig(config, false);
 
-    expect(providerRegistry.has('local')).toBe(true);
-    expect(providerRegistry.getRegisteredProviders()).toEqual(['local']);
+    expect(providerRegistry.has('file')).toBe(true);
+    expect(providerRegistry.getRegisteredProviders()).toEqual(['file']);
   });
 
-  test('should skip disabled providers', () => {
+  test('should handle unknown provider type gracefully', () => {
     const config: EnvoiConfig = {
       variables: [],
       providers: {
-        local: {
-          type: 'local',
+        file: {
+          type: 'file',
           enabled: true,
           config: { file: '.env' }
         },
-        vault: {
-          type: 'vault',
-          enabled: false,
-          config: { address: 'http://localhost:8200' }
+        unknown: {
+          type: 'unknown' as any,
+          enabled: true,
+          config: {}
         }
       }
     };
 
     registerProvidersFromConfig(config, false);
 
-    expect(providerRegistry.has('local')).toBe(true);
-    expect(providerRegistry.has('vault')).toBe(false);
-    expect(providerRegistry.getRegisteredProviders()).toEqual(['local']);
+    expect(providerRegistry.has('file')).toBe(true);
+    expect(providerRegistry.has('unknown')).toBe(false);
+    expect(providerRegistry.getRegisteredProviders()).toEqual(['file']);
   });
 
   test('should handle provider creation errors gracefully', () => {

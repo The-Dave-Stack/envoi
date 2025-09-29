@@ -1,6 +1,6 @@
 providers:
-  local:
-    type: local
+  file:
+    type: file
     enabled: true
     config:
       file: .env
@@ -17,14 +17,14 @@ variables:
     required: true
     description: "Database connection string"
     source:
-      type: local
+      type: file
       file: .env
       key: DB_URL
   - name: API_KEY
     required: true
     description: "API key for external service"
     source:
-      type: local
+      type: file
       file: .env
       key: EXTERNAL_API_KEY
   - name: NODE_ENV
@@ -43,15 +43,6 @@ variables:
   #     type: openbao
   #     path: secret/data/myapp
   #     key: secret_token
-  # 
-  # Example for Vault integration
-  # - name: LEGACY_TOKEN
-  #   required: false
-  #   description: "Legacy token from Vault"
-  #   source:
-  #     type: vault
-  #     path: secret/data/myapp
-  #     key: api_token
 
 # Default command to execute when no command-line arguments are provided
 command:

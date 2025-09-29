@@ -42,7 +42,7 @@ Environment-agnostic configuration orchestrator for consistent application deplo
 - **Dual Configuration System**: Support for user (~/.envoi/) and project (./.envoi/) directories
 - **Configuration Management**: Create, list, show, edit, and remove named configurations
 - **Priority-based Configuration Merging**: project > user > legacy for flexible configuration
-- **Multiple Providers**: Support for `.env` files, HashiCorp Vault, and OpenBao
+- **Multiple Providers**: Support for `.env` files and OpenBao
 - **Default Command Configuration**: Set default commands in configuration files with command-line override
 - **Flexible Command Syntax**: Use both `envoi exec "command"` and `envoi exec -- command` formats
 - **Colored Logging**: Beautiful colorized output with a clear visual hierarchy
@@ -73,13 +73,13 @@ Get started in 3 steps:
       - name: DATABASE_URL
         required: true
         source:
-          type: local
+          type: file
           file: .env
           key: DB_URL
       - name: API_KEY
         required: true
         source:
-          type: local
+          type: file
           file: .env
           key: EXTERNAL_API_KEY
     ```
@@ -149,8 +149,8 @@ To preview the variables `envoi` will load without running the command, use `env
 $ envoi env
 envoi environment variables:
 
-  DATABASE_URL:  postgresql://user:password@localhost:5432/mydb (local:DB_URL)
-  API_KEY:       sk-your-api-key-here (local:EXTERNAL_API_KEY)
+  DATABASE_URL:  postgresql://user:password@localhost:5432/mydb (file:DB_URL)
+  API_KEY:       sk-your-api-key-here (file:EXTERNAL_API_KEY)
 
 Default Command:
 
@@ -219,8 +219,8 @@ envoi config rm <name>
 ```yaml
 # Optional: Provider configurations for enabling/disabling specific providers
 providers:
-  local:
-    type: local
+  file:
+    type: file
     enabled: true
     config:
       file: .env
@@ -239,8 +239,8 @@ variables:
     default: "default_value"     # Optional: A fallback value if not found in sources.
     description: "Description"    # Documents the variable's purpose.
     source:                      # Optional: Inline source configuration for this variable.
-      type: local                # Provider type: 'local', 'vault', or 'openbao'.
-      file: .env                # For 'local' provider: the source file path.
+      type: file                # Provider type: 'file' or 'openbao'.
+      file: .env                # For 'file' provider: the source file path.
       key: ENV_KEY              # The key to look up in the source file.
 
 # Optional: A default command to run if none is provided via the command line.
@@ -264,8 +264,8 @@ variables:
     required: true
 
 providers:
-  local:
-    type: local
+  file:
+    type: file
     enabled: true
     config:
       file: .env
@@ -310,28 +310,15 @@ Envoi supports a dual configuration system with different scopes:
 
 ### Providers
 
-#### Local Provider (`.env` files)
+#### File Provider (`.env` files)
 
 ```yaml
 variables:
   - name: DATABASE_URL
     source:
-      type: local
+      type: file
       file: .env
       key: DB_URL
-```
-
-#### Vault Provider (v1.1)
-
-Requires `VAULT_TOKEN` and `VAULT_ADDR` environment variables to be set.
-
-```yaml
-variables:
-  - name: SECRET_TOKEN
-    source:
-      type: vault
-      path: secret/data/myapp
-      key: api_token
 ```
 
 #### OpenBao Provider
@@ -352,7 +339,7 @@ variables:
 `envoi` resolves and loads variables with the following priority (1 wins):
 
 1.  **Existing Environment Variables**: Any variable already present in the shell environment will be used and **will not be overwritten** by `envoi` sources.
-2.  **Configured Sources**: Values fetched from providers like `.env` files or Vault.
+2.  **Configured Sources**: Values fetched from providers like `.env` files or OpenBao.
 3.  **Default Values**: Fallback values specified in the `variables` section of `envoi.yml`.
 
 -----
@@ -371,7 +358,7 @@ variables:
   - name: DATABASE_URL
     required: true
     source:
-      type: local
+      type: file
       file: .env
       key: DEV_DATABASE_URL
 ```
@@ -381,7 +368,7 @@ variables:
 DEV_DATABASE_URL=postgresql://localhost:5432/myapp_dev
 ```
 
-### Production with Vault
+### Production with OpenBao
 
 ```yaml
 # envoi.yml
@@ -391,21 +378,21 @@ variables:
   - name: DATABASE_URL
     required: true
     source:
-      type: vault
+      type: openbao
       path: secret/data/production/myapp
       key: database_url
   - name: API_KEY
     required: true
     source:
-      type: vault
+      type: openbao
       path: secret/data/production/myapp
       key: external_api_key
 ```
 
 ```bash
-# Set up Vault authentication
-export VAULT_TOKEN="..."
-export VAULT_ADDR="..."
+# Set up OpenBao authentication
+export OPENBAO_TOKEN="..."
+export OPENBAO_ADDR="..."
 
 # Run with production configuration
 envoi exec -- npm start
@@ -558,8 +545,8 @@ The detailed version history is available in the `CHANGELOG.md` file.
 
 ### v1.1
 
-  - **HashiCorp Vault Provider** integration.
-  - Token-based authentication for Vault.
+  - **HashiCorp Vault Provider** integration (removed in v0.2.0).
+  - Token-based authentication for Vault (removed in v0.2.0).
 
 ### v1.0 (MVP)
 

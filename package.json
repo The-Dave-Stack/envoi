@@ -1,7 +1,7 @@
 {
   "name": "@thedavestack/envoi",
-  "version": "0.1.0",
-  "description": "Environment-agnostic configuration orchestrator with OpenBao and HashiCorp Vault support",
+  "version": "0.2.0",
+  "description": "Environment-agnostic configuration orchestrator with OpenBao support",
   "main": "dist/index.js",
   "bin": {
     "envoi": "dist/index.js"
