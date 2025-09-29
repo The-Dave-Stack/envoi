@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-`envoi` is a CLI tool for environment-agnostic configuration orchestration. It provides a single source of truth for managing environment variables across different environments (local, staging, production) with support for multiple providers like `.env` files and OpenBao. 
+`envoi` is a CLI tool for environment-agnostic configuration orchestration. It provides a single source of truth for managing environment variables across different environments (local, staging, production) with support for multiple providers like `.env` files and OpenBao.
+
+The project uses [backlog.md](https://github.com/the-dave-stack/backlog.md) for comprehensive task management and roadmap planning. All project improvements and features are tracked as detailed tasks in the `backlog/tasks/` directory. 
 
 ### Key Features
 - **Named Configuration Execution**: Execute configurations with `envoi [config_name]` syntax
@@ -329,6 +331,32 @@ Test setup includes provider registration via `providerRegistry` and command dis
 2. **Infrastructure Directory**: Contains supporting infrastructure (CommandDiscovery, CommandRegistry)
 3. **Clear Separation**: Commands are separated from their discovery and registration mechanisms
 4. **Modular Design**: Each component has a single responsibility and can be tested independently
+
+## Project Roadmap and Task Management
+
+The project has 14 detailed improvement tasks in the backlog system covering:
+
+**High Priority Features:**
+- Configuration Templates System (task-4)
+- Variable Interpolation Support (task-5) 
+- Interactive Configuration Setup (task-6)
+- Configuration Validation & Dry-Run Command (task-7)
+- Comprehensive Integration Testing (task-11)
+- Security & Vulnerability Testing (task-12)
+
+**Medium Priority Features:**
+- Enhanced Error Handling & User Experience (task-1)
+- Configuration Validation Enhancements (task-2)
+- Enhanced Logging & Debug Information (task-8)
+- Configuration Export/Import & Sharing (task-9)
+- Enhanced Documentation & Tutorials (task-13)
+
+**Low Priority Features:**
+- Environment Variable Type Validation (task-3)
+- Shell Completion & CLI Enhancements (task-10)
+- Ecosystem Integration Examples (task-14)
+
+Each task includes detailed acceptance criteria, implementation notes, and technical specifications for successful development.
 
 <!-- BACKLOG.MD GUIDELINES START -->
 # Instructions for the usage of Backlog.md CLI Tool

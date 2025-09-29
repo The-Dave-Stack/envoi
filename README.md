@@ -31,6 +31,7 @@ Environment-agnostic configuration orchestrator for consistent application deplo
   - [Variable Resolution Order](#variable-resolution-order)
 - [Examples](#examples)
 - [Development](#development)
+- [Project Roadmap](#project-roadmap)
 - [Version History](#version-history)
 - [Contributing](#contributing)
 - [License](#license)
@@ -540,6 +541,43 @@ The `.github/workflows/ci.yml` workflow:
 - Runs tests on every push and pull request
 - Publishes to npm only on pushes to main branch
 - Can be manually triggered via GitHub Actions UI
+
+-----
+
+## Project Roadmap
+
+Envoi has a comprehensive roadmap for future enhancements, managed through our backlog system. You can view all planned improvements in the [`backlog/tasks/`](./backlog/tasks/) directory.
+
+### Upcoming Features
+
+**High Priority:**
+- **Configuration Templates System**: Pre-built templates for popular frameworks (Next.js, Express, Docker)
+- **Variable Interpolation Support**: Dynamic configuration values using `${VAR}` syntax
+- **Interactive Configuration Setup**: Guided wizard for creating configurations
+- **Configuration Validation & Dry-Run**: Test configurations without execution
+- **Comprehensive Integration Testing**: End-to-end testing scenarios
+- **Security & Vulnerability Testing**: Enhanced security hardening
+
+**Medium Priority:**
+- **Enhanced Error Handling**: More specific error types with recovery suggestions
+- **Advanced Logging**: Structured logging with configurable levels
+- **Configuration Export/Import**: Share configurations across teams
+- **Enhanced Documentation**: Video tutorials and migration guides
+
+**Low Priority:**
+- **Environment Variable Type Validation**: Format validation for URLs, numbers, etc.
+- **Shell Completion**: Tab completion for Bash, Zsh, Fish
+- **Ecosystem Integration Examples**: Real-world deployment examples
+
+### Contributing to the Roadmap
+
+We use [backlog.md](https://github.com/the-dave-stack/backlog.md) for project management. You can:
+
+- View tasks: Browse the `backlog/tasks/` directory
+- Suggest features: Create an issue referencing specific tasks
+- Contribute: Pick up any task and submit a PR
+
+All tasks include detailed acceptance criteria and implementation notes to ensure successful development.
 
 -----
 
