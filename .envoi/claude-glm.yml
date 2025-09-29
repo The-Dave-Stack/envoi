@@ -50,10 +50,3 @@ variables:
       type: openbao
       path: local/data/aiassistants
       namespace: tds
-  - name: DOKPLOY_TDS_API_KEY
-    required: true
-    description: "Dokploy API key for TDS"
-    source:
-      type: openbao
-      path: local/data/mcp
-      namespace: tds
