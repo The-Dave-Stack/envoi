@@ -1,4 +1,5 @@
 # envoi
+[![CI](https://github.com/The-Dave-Stack/envoi/actions/workflows/ci.yml/badge.svg)](https://github.com/The-Dave-Stack/envoi/actions/workflows/ci.yml)
 [![npm version](https://badge.fury.io/js/envoi.svg)](https://badge.fury.io/js/envoi)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -273,12 +274,12 @@ providers:
 variables:
   - name: DATABASE_URL
     source:
-      type: local
+      type: file
       file: .env
       key: DEV_DATABASE_URL
   - name: API_KEY
     source:
-      type: local
+      type: file
       file: .env
       key: DEV_API_KEY
 
@@ -310,7 +311,11 @@ Envoi supports a dual configuration system with different scopes:
 
 ### Providers
 
+Envoi loads secrets and configuration from different sources called "Providers". You can enable and configure providers in the `providers` section of your `envoi.yml`. While you can configure multiple instances of the built-in providers, adding new *types* of providers (e.g., for other cloud services) requires code changes.
+
 #### File Provider (`.env` files)
+
+This provider reads variables from standard `.env` files.
 
 ```yaml
 variables:
@@ -323,7 +328,7 @@ variables:
 
 #### OpenBao Provider
 
-Requires `OPENBAO_TOKEN` and `OPENBAO_ADDR` environment variables to be set.
+This provider fetches secrets from an OpenBao (or HashiCorp Vault) instance. It requires `OPENBAO_TOKEN` and `OPENBAO_ADDR` environment variables to be set for authentication.
 
 ```yaml
 variables:
@@ -405,6 +410,28 @@ envoi exec -- npm start
   - **Build:** `npm run build`
   - **Test:** `npm test` or `npm run test:watch`
   - **Lint:** `npm run lint` or `npm run lint:fix`
+
+### Development Environment with Docker
+
+For contributors looking to work with the OpenBao provider, this project includes a Docker Compose setup that spins up a complete local testing environment.
+
+**Services:**
+- **`openbao`**: An OpenBao server instance.
+- **`postgres`**: A PostgreSQL database that acts as the storage backend for OpenBao.
+
+**How to Use:**
+1.  Ensure you have Docker and Docker Compose installed.
+2.  Create a `.env` file in the root of the project with the following variables (you can copy `.env.example`):
+    ```bash
+    POSTGRES_DB=envoi
+    POSTGRES_USER=envoi
+    POSTGRES_PASSWORD=envoi
+    ```
+3.  Start the services:
+    ```bash
+    docker-compose up
+    ```
+4.  The OpenBao UI will be available at `http://localhost:8200`. You can use this for local testing of the OpenBao provider.
 
 ## Release Process
 
@@ -518,39 +545,7 @@ The `.github/workflows/ci.yml` workflow:
 
 ## Version History
 
-The detailed version history is available in the `CHANGELOG.md` file.
-
-### v0.1.0 (Latest)
-
-  - **Named Configuration Execution**: Execute configurations with `envoi [config_name]` syntax
-  - **Dual Configuration System**: Support for user (~/.envoi/) and project (./.envoi/) directories
-  - **Configuration Management**: Create, list, show, edit, and remove named configurations
-  - **Priority-based Configuration Merging**: project > user > legacy for flexible configuration
-  - **Enhanced CLI Help**: Comprehensive help system with all new features and examples
-  - **Code Structure Reorganization**: Separated command infrastructure from command implementations
-  - **OpenBao Provider**: Added support for OpenBao secret management
-  - **Inline Variable Sources**: New configuration format with sources defined inline with variables
-
-### v1.3
-
-  - **Default Command Configuration** & Priority Logic.
-  - Enhanced CLI Help and `envoi env` output.
-  - Comprehensive integration testing.
-
-### v1.2
-
-  - **Flexible `--` Command Syntax** added.
-  - **Colored Logging** for improved UX.
-  - Centralized logger and enhanced error handling.
-
-### v1.1
-
-  - **HashiCorp Vault Provider** integration (removed in v0.2.0).
-  - Token-based authentication for Vault (removed in v0.2.0).
-
-### v1.0 (MVP)
-
-  - Initial release with `envoi.yml` support and local `.env` provider.
+For a detailed list of changes, please see the [`CHANGELOG.md`](./CHANGELOG.md) file.
 
 -----
 

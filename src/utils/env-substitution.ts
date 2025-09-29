@@ -17,7 +17,7 @@ export function substituteEnvVars(value: string): string {
 /**
  * Recursively substitute environment variables in an object.
  */
-export function substituteEnvVarsInObject(obj: any): any {
+export function substituteEnvVarsInObject(obj: unknown): unknown {
   dotenv.config();
   if (typeof obj === 'string') {
     return substituteEnvVars(obj);
@@ -28,7 +28,7 @@ export function substituteEnvVarsInObject(obj: any): any {
   }
   
   if (obj && typeof obj === 'object') {
-    const result: any = {};
+    const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       result[key] = substituteEnvVarsInObject(value);
     }

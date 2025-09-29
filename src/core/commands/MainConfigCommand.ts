@@ -302,7 +302,7 @@ Examples:
     }
   }
 
-  private yamlStringify(obj: any): string {
+  private yamlStringify(obj: Record<string, unknown>): string {
     // Simple YAML stringification for basic objects
     const yaml = require('yaml');
     return yaml.stringify(obj);

@@ -8,7 +8,7 @@ export class FileProvider implements Provider {
   name = 'file';
   private configFile: string = '.env';
 
-  constructor(config?: any) {
+  constructor(config?: { file?: string }) {
     if (config?.file) {
       this.configFile = config.file;
     }

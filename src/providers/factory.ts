@@ -19,8 +19,8 @@ export class ProviderFactory {
     }
   }
 
-  static create(type: string, config?: any): Provider {
-    let ProviderClass: any;
+  static create(type: string, config?: Record<string, unknown>): Provider {
+    let ProviderClass: new (config?: Record<string, unknown>) => Provider;
     
     if (type === 'openbao') {
       const OpenBaoProvider = this.getOpenBaoProvider();
@@ -37,7 +37,7 @@ export class ProviderFactory {
     }
 
     // Substitute environment variables in config
-    const processedConfig = config ? substituteEnvVarsInObject(config) : undefined;
+    const processedConfig = config ? substituteEnvVarsInObject(config) as Record<string, unknown> : undefined;
     
     try {
       return new ProviderClass(processedConfig);

@@ -148,7 +148,7 @@ export class ConfigDiscovery {
         .filter(file => file.endsWith('.yml') || file.endsWith('.yaml'))
         .map(file => file.replace(/\.(yml|yaml)$/, ''));
     } catch (error) {
-      if (error instanceof Error && 'code' in error && (error as any).code === 'ENOENT') {
+      if (error instanceof Error && 'code' in error && (error as { code?: string }).code === 'ENOENT') {
         return [];
       }
       throw error;
@@ -159,7 +159,7 @@ export class ConfigDiscovery {
     try {
       await fs.access(dirPath);
     } catch (error) {
-      if (error instanceof Error && 'code' in error && (error as any).code === 'ENOENT') {
+      if (error instanceof Error && 'code' in error && (error as { code?: string }).code === 'ENOENT') {
         await fs.mkdir(dirPath, { recursive: true });
         Logger.info(`[ConfigDiscovery] Created directory: ${dirPath}`);
       } else {

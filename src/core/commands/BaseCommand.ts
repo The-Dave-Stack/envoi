@@ -5,7 +5,7 @@ import { EnvoiConfig } from '../../config/schema';
 import { EnvoiError } from '../../utils/errors';
 import { Logger } from '../../utils/logger';
 import { filterDisabledProviders } from '../../utils/provider-filter';
-import { ConfigDiscovery } from '../../config/discovery';
+import { ConfigDiscovery, ConfigDiscoveryOptions } from '../../config/discovery';
 import { providerRegistry } from '../../providers/registry';
 import { registerProvidersFromConfig } from '../../providers/dynamic-registration';
 
@@ -52,10 +52,12 @@ export abstract class BaseCommand implements ProgramCommand {
         }
       } else {
         // Use configuration discovery
-        const discoveryOptions: any = {
-          configName,
+        const discoveryOptions: ConfigDiscoveryOptions = {
           legacyConfigPath: configPath
         };
+        if (configName) {
+          discoveryOptions.configName = configName;
+        }
         if (options.userConfigDir) discoveryOptions.userConfigDir = options.userConfigDir;
         if (options.projectConfigDir) discoveryOptions.projectConfigDir = options.projectConfigDir;
         

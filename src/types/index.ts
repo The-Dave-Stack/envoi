@@ -19,7 +19,7 @@ export interface ProgramCommand {
   command: string;
   description: string;
   options: ProgramOption[];
-  action: (...args: any[]) => void | Promise<void>;
+  action: (...args: unknown[]) => void | Promise<void>;
 }
 
 // Re-export types from schema to maintain consistency
