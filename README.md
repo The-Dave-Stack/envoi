@@ -56,7 +56,7 @@ Environment-agnostic configuration orchestrator for consistent application deplo
 ## Installation
 
 ```bash
-npm install -g envoi
+npm install -g @thedavestack/envoi
 ```
 
 -----
