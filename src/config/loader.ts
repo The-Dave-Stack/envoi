@@ -7,6 +7,8 @@ import { EnvoiError } from '../utils/errors';
 import { Logger } from '../utils/logger';
 import { validateConfig } from './schema';
 
+const FRONTMATTER_REGEX = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
+
 export async function loadConfig(configPath: string): Promise<EnvoiConfig> {
   try {
     const absolutePath = path.resolve(configPath);
@@ -27,7 +29,7 @@ export async function loadConfig(configPath: string): Promise<EnvoiConfig> {
     return validateConfig(finalConfig);
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('ENOENT')) {
+      if ('code' in error && error.code === 'ENOENT') {
         // Don't log errors for missing files - this is expected behavior during config discovery
         throw new EnvoiError(`Configuration file not found: ${configPath}`);
       }
@@ -43,9 +45,8 @@ export async function loadConfig(configPath: string): Promise<EnvoiConfig> {
   }
 }
 
-function parseFrontmatter(content: string): { frontmatter: any; configContent: string } {
-  const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
-  const match = content.match(frontmatterRegex);
+function parseFrontmatter(content: string): { frontmatter: Record<string, unknown>; configContent: string } {
+  const match = content.match(FRONTMATTER_REGEX);
   
   if (!match) {
     // No frontmatter found, return empty frontmatter and original content

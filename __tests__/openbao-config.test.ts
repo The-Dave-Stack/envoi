@@ -55,27 +55,17 @@ describe('OpenBao Configuration Integration', () => {
     expect(config.providers?.openbao.enabled).toBe(true);
   });
 
-  test('should handle backward compatibility with Vault and OpenBao', () => {
+  test('should handle OpenBao configuration', () => {
     const configData = {
       variables: [
         {
-          name: 'OLD_SECRET',
-          required: true,
-          description: 'Secret from Vault',
-          source: {
-            type: 'vault',
-            path: 'secret/data/myapp',
-            key: 'old_secret'
-          }
-        },
-        {
-          name: 'NEW_SECRET',
+          name: 'SECRET_KEY',
           required: true,
           description: 'Secret from OpenBao',
           source: {
             type: 'openbao',
             path: 'secret/data/myapp',
-            key: 'new_secret'
+            key: 'secret_key'
           }
         }
       ]
@@ -83,8 +73,7 @@ describe('OpenBao Configuration Integration', () => {
 
     const config = validateConfig(configData);
     expect(config.variables[0].source).toBeDefined();
-    expect(config.variables[0].source?.type).toBe('vault');
-    expect(config.variables[1].source?.type).toBe('openbao');
+    expect(config.variables[0].source?.type).toBe('openbao');
   });
 
   test('should reject invalid provider type', () => {

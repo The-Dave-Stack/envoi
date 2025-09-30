@@ -27,7 +27,7 @@ export class CommandRegistry {
     return this.registrations;
   }
 
-  private static registerCommand(program: Command, _programOptions: any, command: BaseCommand): CommandRegistration {
+  private static registerCommand(program: Command, _programOptions: unknown, command: BaseCommand): CommandRegistration {
     // Check if this should be the default command
     const isDefault = command.command === 'exec'; // exec is our default command
     const allowUnknown = command.command === 'exec' || command.command === 'config';

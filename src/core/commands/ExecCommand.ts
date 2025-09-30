@@ -89,7 +89,12 @@ Examples:
       }
       
       // Setup environment and get filtered config
-      const setupOptions: any = {};
+      const setupOptions: { 
+        userConfigDir?: string; 
+        projectConfigDir?: string; 
+        userConfigOnly?: boolean; 
+        projectConfigOnly?: boolean; 
+      } = {};
       if (options.userConfigDir) setupOptions.userConfigDir = options.userConfigDir;
       if (options.projectConfigDir) setupOptions.projectConfigDir = options.projectConfigDir;
       if (options.userConfigOnly) setupOptions.userConfigOnly = options.userConfigOnly;

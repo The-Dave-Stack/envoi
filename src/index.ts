@@ -5,9 +5,10 @@ import { CommandRegistry } from './core/infrastructure';
 import { Logger } from './utils/logger';
 import packageJson from '../package.json';
 
-const program = new Command();
+async function main(): Promise<void> {
+  const program = new Command();
 
-const customDescription = `${packageJson.description}
+  const customDescription = `${packageJson.description}
 
 Load environment variables from multiple sources (.env files, HashiCorp Vault, OpenBao) and execute commands with injected configuration.
 Configure default commands in envoi.yml and override them with command-line arguments.
@@ -35,44 +36,32 @@ Examples:
   # Environment variable injection
   envoi exec "echo $DATABASE_URL" --verbose`;
 
-program.name(packageJson.name).description(customDescription).version(packageJson.version);
+  program.name(packageJson.name).description(customDescription).version(packageJson.version);
 
-// Dynamically load and register all commands
-async function loadCommands(): Promise<void> {
   try {
-    const registrations = await CommandRegistry.registerCommands(program);
-
-    if (process.env.DEBUG || process.env.VERBOSE) {
-      Logger.info(`[Boot] Loaded ${registrations.length} commands:`);
-      registrations.forEach((reg) => {
-        Logger.info(`[Boot]  - ${reg.command.command}: ${reg.command.description}`);
-      });
-    }
+    await CommandRegistry.registerCommands(program);
   } catch (error) {
     console.error('[Boot] Failed to load commands:', error);
     process.exit(1);
   }
+
+  const args = process.argv.slice(2);
+  const firstArg = args[0];
+
+  // If the first argument is not a registered command and not an option, treat it as a config name for the 'exec' command.
+  if (firstArg && !firstArg.startsWith('-')) {
+    const isRegisteredCommand = program.commands.some(cmd => cmd.name() === firstArg || cmd.aliases().includes(firstArg));
+    if (!isRegisteredCommand) {
+      // Prepend 'exec' to the arguments and re-parse.
+      program.parse(['node', 'envoi', 'exec', ...args]);
+      return;
+    }
+  }
+
+  program.parse(process.argv);
 }
 
-// Load commands and start the CLI
-loadCommands()
-  .then(() => {
-    // Handle default behavior (when no command is provided or first arg is not a registered command)
-    const args = process.argv.slice(2);
-    
-    if (args.length > 0 && !args[0].startsWith('-')) {
-      const registeredCommands = CommandRegistry.getRegistrations().map(reg => reg.command.command);
-      
-      if (!registeredCommands.includes(args[0])) {
-        // First argument is not a registered command, treat it as a config name
-        // Prepend 'exec' and add the config name as the first argument
-        process.argv.splice(2, 0, 'exec');
-      }
-    }
-    
-    program.parse();
-  })
-  .catch((error) => {
-    Logger.error('[Boot] Failed to initialize CLI:', error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  Logger.error('[Boot] Failed to initialize CLI:', error);
+  process.exit(1);
+});

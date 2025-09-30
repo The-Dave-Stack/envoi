@@ -90,9 +90,7 @@ export async function resolveAndExecute(
   };
 
   return new Promise((resolve, reject) => {
-    const [cmd, ...args] = command.split(' ');
-    
-    if (!cmd) {
+    if (!command) {
       reject(new Error('No command provided'));
       return;
     }
@@ -101,7 +99,7 @@ export async function resolveAndExecute(
       Logger.debug(`[Resolver] Executing: ${command}`);
     }
 
-    const child = spawn(cmd, args, {
+    const child = spawn(command, {
       stdio: 'inherit',
       env,
       shell: true,

@@ -11,9 +11,15 @@
       "Bash(npm run lint)",
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "mcp__mcp-backlog-md__list_tasks",
+      "mcp__mcp-backlog-md__create_task"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "deepwiki"
+  ]
 }

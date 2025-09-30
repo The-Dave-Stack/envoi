@@ -1,4 +1,5 @@
 # envoi
+[![CI](https://github.com/The-Dave-Stack/envoi/actions/workflows/ci.yml/badge.svg)](https://github.com/The-Dave-Stack/envoi/actions/workflows/ci.yml)
 [![npm version](https://badge.fury.io/js/envoi.svg)](https://badge.fury.io/js/envoi)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -30,6 +31,7 @@ Environment-agnostic configuration orchestrator for consistent application deplo
   - [Variable Resolution Order](#variable-resolution-order)
 - [Examples](#examples)
 - [Development](#development)
+- [Project Roadmap](#project-roadmap)
 - [Version History](#version-history)
 - [Contributing](#contributing)
 - [License](#license)
@@ -42,7 +44,7 @@ Environment-agnostic configuration orchestrator for consistent application deplo
 - **Dual Configuration System**: Support for user (~/.envoi/) and project (./.envoi/) directories
 - **Configuration Management**: Create, list, show, edit, and remove named configurations
 - **Priority-based Configuration Merging**: project > user > legacy for flexible configuration
-- **Multiple Providers**: Support for `.env` files, HashiCorp Vault, and OpenBao
+- **Multiple Providers**: Support for `.env` files and OpenBao
 - **Default Command Configuration**: Set default commands in configuration files with command-line override
 - **Flexible Command Syntax**: Use both `envoi exec "command"` and `envoi exec -- command` formats
 - **Colored Logging**: Beautiful colorized output with a clear visual hierarchy
@@ -55,7 +57,7 @@ Environment-agnostic configuration orchestrator for consistent application deplo
 ## Installation
 
 ```bash
-npm install -g envoi
+npm install -g @thedavestack/envoi
 ```
 
 -----
@@ -73,13 +75,13 @@ Get started in 3 steps:
       - name: DATABASE_URL
         required: true
         source:
-          type: local
+          type: file
           file: .env
           key: DB_URL
       - name: API_KEY
         required: true
         source:
-          type: local
+          type: file
           file: .env
           key: EXTERNAL_API_KEY
     ```
@@ -149,8 +151,8 @@ To preview the variables `envoi` will load without running the command, use `env
 $ envoi env
 envoi environment variables:
 
-  DATABASE_URL:  postgresql://user:password@localhost:5432/mydb (local:DB_URL)
-  API_KEY:       sk-your-api-key-here (local:EXTERNAL_API_KEY)
+  DATABASE_URL:  postgresql://user:password@localhost:5432/mydb (file:DB_URL)
+  API_KEY:       sk-your-api-key-here (file:EXTERNAL_API_KEY)
 
 Default Command:
 
@@ -219,8 +221,8 @@ envoi config rm <name>
 ```yaml
 # Optional: Provider configurations for enabling/disabling specific providers
 providers:
-  local:
-    type: local
+  file:
+    type: file
     enabled: true
     config:
       file: .env
@@ -239,8 +241,8 @@ variables:
     default: "default_value"     # Optional: A fallback value if not found in sources.
     description: "Description"    # Documents the variable's purpose.
     source:                      # Optional: Inline source configuration for this variable.
-      type: local                # Provider type: 'local', 'vault', or 'openbao'.
-      file: .env                # For 'local' provider: the source file path.
+      type: file                # Provider type: 'file' or 'openbao'.
+      file: .env                # For 'file' provider: the source file path.
       key: ENV_KEY              # The key to look up in the source file.
 
 # Optional: A default command to run if none is provided via the command line.
@@ -264,8 +266,8 @@ variables:
     required: true
 
 providers:
-  local:
-    type: local
+  file:
+    type: file
     enabled: true
     config:
       file: .env
@@ -273,12 +275,12 @@ providers:
 variables:
   - name: DATABASE_URL
     source:
-      type: local
+      type: file
       file: .env
       key: DEV_DATABASE_URL
   - name: API_KEY
     source:
-      type: local
+      type: file
       file: .env
       key: DEV_API_KEY
 
@@ -310,33 +312,24 @@ Envoi supports a dual configuration system with different scopes:
 
 ### Providers
 
-#### Local Provider (`.env` files)
+Envoi loads secrets and configuration from different sources called "Providers". You can enable and configure providers in the `providers` section of your `envoi.yml`. While you can configure multiple instances of the built-in providers, adding new *types* of providers (e.g., for other cloud services) requires code changes.
+
+#### File Provider (`.env` files)
+
+This provider reads variables from standard `.env` files.
 
 ```yaml
 variables:
   - name: DATABASE_URL
     source:
-      type: local
+      type: file
       file: .env
       key: DB_URL
 ```
 
-#### Vault Provider (v1.1)
-
-Requires `VAULT_TOKEN` and `VAULT_ADDR` environment variables to be set.
-
-```yaml
-variables:
-  - name: SECRET_TOKEN
-    source:
-      type: vault
-      path: secret/data/myapp
-      key: api_token
-```
-
 #### OpenBao Provider
 
-Requires `OPENBAO_TOKEN` and `OPENBAO_ADDR` environment variables to be set.
+This provider fetches secrets from an OpenBao (or HashiCorp Vault) instance. It requires `OPENBAO_TOKEN` and `OPENBAO_ADDR` environment variables to be set for authentication.
 
 ```yaml
 variables:
@@ -352,7 +345,7 @@ variables:
 `envoi` resolves and loads variables with the following priority (1 wins):
 
 1.  **Existing Environment Variables**: Any variable already present in the shell environment will be used and **will not be overwritten** by `envoi` sources.
-2.  **Configured Sources**: Values fetched from providers like `.env` files or Vault.
+2.  **Configured Sources**: Values fetched from providers like `.env` files or OpenBao.
 3.  **Default Values**: Fallback values specified in the `variables` section of `envoi.yml`.
 
 -----
@@ -371,7 +364,7 @@ variables:
   - name: DATABASE_URL
     required: true
     source:
-      type: local
+      type: file
       file: .env
       key: DEV_DATABASE_URL
 ```
@@ -381,7 +374,7 @@ variables:
 DEV_DATABASE_URL=postgresql://localhost:5432/myapp_dev
 ```
 
-### Production with Vault
+### Production with OpenBao
 
 ```yaml
 # envoi.yml
@@ -391,21 +384,21 @@ variables:
   - name: DATABASE_URL
     required: true
     source:
-      type: vault
+      type: openbao
       path: secret/data/production/myapp
       key: database_url
   - name: API_KEY
     required: true
     source:
-      type: vault
+      type: openbao
       path: secret/data/production/myapp
       key: external_api_key
 ```
 
 ```bash
-# Set up Vault authentication
-export VAULT_TOKEN="..."
-export VAULT_ADDR="..."
+# Set up OpenBao authentication
+export OPENBAO_TOKEN="..."
+export OPENBAO_ADDR="..."
 
 # Run with production configuration
 envoi exec -- npm start
@@ -418,6 +411,28 @@ envoi exec -- npm start
   - **Build:** `npm run build`
   - **Test:** `npm test` or `npm run test:watch`
   - **Lint:** `npm run lint` or `npm run lint:fix`
+
+### Development Environment with Docker
+
+For contributors looking to work with the OpenBao provider, this project includes a Docker Compose setup that spins up a complete local testing environment.
+
+**Services:**
+- **`openbao`**: An OpenBao server instance.
+- **`postgres`**: A PostgreSQL database that acts as the storage backend for OpenBao.
+
+**How to Use:**
+1.  Ensure you have Docker and Docker Compose installed.
+2.  Create a `.env` file in the root of the project with the following variables (you can copy `.env.example`):
+    ```bash
+    POSTGRES_DB=envoi
+    POSTGRES_USER=envoi
+    POSTGRES_PASSWORD=envoi
+    ```
+3.  Start the services:
+    ```bash
+    docker-compose up
+    ```
+4.  The OpenBao UI will be available at `http://localhost:8200`. You can use this for local testing of the OpenBao provider.
 
 ## Release Process
 
@@ -529,41 +544,46 @@ The `.github/workflows/ci.yml` workflow:
 
 -----
 
+## Project Roadmap
+
+Envoi has a comprehensive roadmap for future enhancements, managed through our backlog system. You can view all planned improvements in the [`backlog/tasks/`](./backlog/tasks/) directory.
+
+### Upcoming Features
+
+**High Priority:**
+- **Configuration Templates System**: Pre-built templates for popular frameworks (Next.js, Express, Docker)
+- **Variable Interpolation Support**: Dynamic configuration values using `${VAR}` syntax
+- **Interactive Configuration Setup**: Guided wizard for creating configurations
+- **Configuration Validation & Dry-Run**: Test configurations without execution
+- **Comprehensive Integration Testing**: End-to-end testing scenarios
+- **Security & Vulnerability Testing**: Enhanced security hardening
+
+**Medium Priority:**
+- **Enhanced Error Handling**: More specific error types with recovery suggestions
+- **Advanced Logging**: Structured logging with configurable levels
+- **Configuration Export/Import**: Share configurations across teams
+- **Enhanced Documentation**: Video tutorials and migration guides
+
+**Low Priority:**
+- **Environment Variable Type Validation**: Format validation for URLs, numbers, etc.
+- **Shell Completion**: Tab completion for Bash, Zsh, Fish
+- **Ecosystem Integration Examples**: Real-world deployment examples
+
+### Contributing to the Roadmap
+
+We use [backlog.md](https://github.com/the-dave-stack/backlog.md) for project management. You can:
+
+- View tasks: Browse the `backlog/tasks/` directory
+- Suggest features: Create an issue referencing specific tasks
+- Contribute: Pick up any task and submit a PR
+
+All tasks include detailed acceptance criteria and implementation notes to ensure successful development.
+
+-----
+
 ## Version History
 
-The detailed version history is available in the `CHANGELOG.md` file.
-
-### v0.1.0 (Latest)
-
-  - **Named Configuration Execution**: Execute configurations with `envoi [config_name]` syntax
-  - **Dual Configuration System**: Support for user (~/.envoi/) and project (./.envoi/) directories
-  - **Configuration Management**: Create, list, show, edit, and remove named configurations
-  - **Priority-based Configuration Merging**: project > user > legacy for flexible configuration
-  - **Enhanced CLI Help**: Comprehensive help system with all new features and examples
-  - **Code Structure Reorganization**: Separated command infrastructure from command implementations
-  - **OpenBao Provider**: Added support for OpenBao secret management
-  - **Inline Variable Sources**: New configuration format with sources defined inline with variables
-
-### v1.3
-
-  - **Default Command Configuration** & Priority Logic.
-  - Enhanced CLI Help and `envoi env` output.
-  - Comprehensive integration testing.
-
-### v1.2
-
-  - **Flexible `--` Command Syntax** added.
-  - **Colored Logging** for improved UX.
-  - Centralized logger and enhanced error handling.
-
-### v1.1
-
-  - **HashiCorp Vault Provider** integration.
-  - Token-based authentication for Vault.
-
-### v1.0 (MVP)
-
-  - Initial release with `envoi.yml` support and local `.env` provider.
+For a detailed list of changes, please see the [`CHANGELOG.md`](./CHANGELOG.md) file.
 
 -----
 

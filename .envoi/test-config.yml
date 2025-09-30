@@ -1,7 +1,7 @@
 variables: []
 providers:
   local:
-    type: local
+    type: file
     enabled: true
     config:
       file: .env

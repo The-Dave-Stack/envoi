@@ -1,7 +1,7 @@
 import { loadConfig } from '../src/config/loader';
 import { resolveVariables } from '../src/core/resolver';
 import { validateConfig } from '../src/config/schema';
-import { LocalProvider } from '../src/providers/local';
+import { FileProvider } from '../src/providers/local';
 import { providerRegistry } from '../src/providers/registry';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -12,7 +12,7 @@ describe('Configuration Loading', () => {
 
   beforeAll(() => {
     // Register providers for tests
-    providerRegistry.register(new LocalProvider());
+    providerRegistry.register(new FileProvider());
   });
 
   beforeEach(async () => {
@@ -23,7 +23,7 @@ variables:
     required: true
     description: "Test variable"
     source:
-      type: local
+      type: file
       file: ${testEnvPath}
       key: TEST_KEY
   - name: OPTIONAL_VAR
@@ -56,14 +56,14 @@ variables:
     expect(config.variables[1].default).toBe('default_value');
   });
 
-  test('should resolve variables from local source', async () => {
+  test('should resolve variables from file source', async () => {
     const config = await loadConfig(testConfigPath);
     const resolved = await resolveVariables(config, false);
     
     const testVar = resolved.find(v => v.name === 'TEST_VAR');
     expect(testVar).toBeDefined();
     expect(testVar?.value).toBe('test_value_from_env');
-    expect(testVar?.source).toBe('local:TEST_KEY');
+    expect(testVar?.source).toBe('file:TEST_KEY');
 
     const optionalVar = resolved.find(v => v.name === 'OPTIONAL_VAR');
     expect(optionalVar).toBeDefined();

@@ -4,23 +4,23 @@ import * as path from 'path';
 import { Provider, VariableSource } from '../types';
 import { ProviderError } from '../utils/errors';
 
-export class LocalProvider implements Provider {
-  name = 'local';
+export class FileProvider implements Provider {
+  name = 'file';
   private configFile: string = '.env';
 
-  constructor(config?: any) {
+  constructor(config?: { file?: string }) {
     if (config?.file) {
       this.configFile = config.file;
     }
   }
 
   async resolve(source: VariableSource): Promise<string> {
-    if (source.type !== 'local') {
-      throw new ProviderError(`LocalProvider cannot handle source type: ${source.type}`);
+    if (source.type !== 'file') {
+      throw new ProviderError(`FileProvider cannot handle source type: ${source.type}`);
     }
 
     if (!source.key) {
-      throw new ProviderError('Local provider requires a "key" specification');
+      throw new ProviderError('File provider requires a "key" specification');
     }
 
     // Use source.file if provided, otherwise use configured file
