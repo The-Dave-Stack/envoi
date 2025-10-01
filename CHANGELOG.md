@@ -24,9 +24,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Version bumping scripts for major/minor/patch releases
 - CHANGELOG.md automation
 
-[Unreleased]: https://github.com/The-Dave-Stack/envoi/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/The-Dave-Stack/envoi/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/The-Dave-Stack/envoi/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/The-Dave-Stack/envoi/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/The-Dave-Stack/envoi/releases/tag/v0.1.0
-## [Unreleased]
+
+## [0.2.1] - 2025-10-01
+
+### Added
+- Enhanced command descriptions for better CLI user experience
+- HelpStyler utility for improved CLI output formatting
+
+## [0.2.0] - 2025-09-25
 
 ### Changed
 - **Breaking Change**: Renamed `local` provider to `file` provider for better naming consistency
@@ -39,4 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - HashiCorp Vault provider support and related code
 - All vault-related test cases and examples
+
+## [Unreleased]
 
