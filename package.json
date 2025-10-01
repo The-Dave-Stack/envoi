@@ -20,7 +20,11 @@
     "validate-changelog": "node -e \"const pkg = require('./package.json'); const fs = require('fs'); const changelog = fs.readFileSync('CHANGELOG.md', 'utf8'); if (!changelog.includes(pkg.version)) { console.error('Version', pkg.version, 'not found in changelog'); process.exit(1); } else { console.log('Changelog validation passed for version', pkg.version); }\"",
     "changelog:add": "node scripts/changelog-add.js",
     "changelog:release": "node scripts/changelog-release.js",
-    "changelog:verify": "node scripts/changelog-verify.js"
+    "changelog:verify": "node scripts/changelog-verify.js",
+    "validate-cicd": "node scripts/validate-cicd.js",
+    "commit": "git-cz",
+    "semantic-release": "semantic-release",
+    "prepare": "husky install"
   },
   "keywords": [
     "environment",
@@ -47,13 +51,24 @@
     "zod": "^4.1.8"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.0",
+    "@semantic-release/github": "^10.1.7",
+    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/release-notes-generator": "^14.0.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.5.0",
     "@typescript-eslint/eslint-plugin": "^8.44.0",
     "@typescript-eslint/parser": "^8.44.0",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
     "eslint": "^9.35.0",
+    "husky": "^9.1.6",
     "jest": "^30.1.3",
     "rimraf": "^6.0.1",
+    "semantic-release": "^24.1.2",
     "ts-jest": "^29.4.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
@@ -65,5 +80,10 @@
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
