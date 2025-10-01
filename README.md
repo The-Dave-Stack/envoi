@@ -532,6 +532,81 @@ For detailed information about the release process, see [docs/RELEASE-PROCESS.md
 
 -----
 
+## 🌿 GitFlow Workflow
+
+This project follows a **GitFlow** branching strategy for organized development and release management:
+
+### Branch Structure
+
+```
+main (Production)
+├── 🚀 Automated releases to npm
+├── 📦 Production builds
+└── 🏷️ Production tags
+
+develop (Integration)  
+├── 🔧 Feature integration
+├── 🧪 CI/CD testing
+└── 📋 Release preparation
+
+feature/* (Development)
+├── 💻 Feature development
+├── 🧪 Local testing
+└── 🔀 Pull requests to develop
+```
+
+### Workflow Process
+
+**1. Feature Development:**
+```bash
+# Create feature branch
+git checkout -b feature/new-feature develop
+
+# Develop and test locally
+npm run validate-cicd
+npm test && npm run lint && npm run build
+
+# Commit with conventional commits
+npm run commit
+git push origin feature/new-feature
+```
+
+**2. Integration (Feature → develop):**
+```bash
+# Create pull request: feature/* → develop
+# CI/CD runs automatically on develop
+# Team reviews and merges into develop
+```
+
+**3. Release (develop → main):**
+```bash
+# When ready for production
+git checkout main
+git merge develop
+
+# Push to main triggers automated release
+git push origin main
+# ✅ Semantic-release handles version bump, changelog, npm publish
+```
+
+### Branch Protection Rules
+
+- **main branch**: Only merges from develop, automated releases only
+- **develop branch**: Accepts merges from feature branches, full CI/CD
+- **feature branches**: Created from develop, merge back to develop
+
+### CI/CD Triggers
+
+- **CI/CD Pipeline**: Runs on `main`, `develop`, and `feature/*` branches
+- **Automated Releases**: Only on `main` branch (production)
+- **Pull Requests**: Target both `main` and `develop` branches
+
+This GitFlow workflow ensures:
+- ✅ Clear separation between development and production
+- ✅ Controlled releases with automated versioning
+- ✅ Integration testing in develop branch
+- ✅ Production safety with only main branch publishing
+
 ## CI/CD Pipeline
 
 Envoi features a comprehensive CI/CD pipeline with automated testing, security scanning, and releases.
@@ -539,24 +614,27 @@ Envoi features a comprehensive CI/CD pipeline with automated testing, security s
 ### 🔄 CI/CD Workflows
 
 **Main CI/CD Pipeline** (`.github/workflows/ci.yml`):
-- Runs on every push to main and feature branches
+- Runs on every push to `main`, `develop`, and `feature/*` branches
 - Executes test suite with coverage reporting
 - Performs security scanning with CodeQL analysis
 - Builds and validates project artifacts
 - Provides detailed notifications
+- **GitFlow Integration**: Full testing on develop branch for integration
 
 **Automated Releases** (`.github/workflows/release.yml`):
-- Triggered by pushes to main branch
+- **Triggered only on pushes to `main` branch** (production)
 - Uses semantic-release for version management
 - Creates GitHub releases with auto-generated notes
 - Publishes packages to npm registry
 - Updates changelog automatically
+- **Production Safety**: Only main branch can publish to npm
 
 **Health Monitoring** (`.github/workflows/health-monitor.yml`):
 - Runs daily health checks
 - Monitors dependency updates
 - Validates project structure and configurations
 - Provides repository health metrics
+- **Integration Environment**: Helps maintain develop branch health
 
 ### 📊 Monitoring & Validation
 
@@ -625,11 +703,32 @@ For a detailed list of changes, please see the [`CHANGELOG.md`](./CHANGELOG.md) 
 
 ## Contributing
 
-1.  Fork the repository.
-2.  Create a feature branch (`git checkout -b feature/amazing-feature`).
-3.  Make your changes and add tests.
-4.  Ensure all tests pass (`npm test`).
-5.  Submit a pull request.
+We welcome contributions! Please follow our GitFlow workflow:
+
+1.  **Fork the repository.**
+2.  **Create a feature branch** from develop:
+    ```bash
+    git checkout develop
+    git pull origin develop
+    git checkout -b feature/amazing-feature develop
+    ```
+3.  **Make your changes** following our standards:
+    - Use conventional commits (`npm run commit` for guidance)
+    - Add tests for new functionality
+    - Run `npm run validate-cicd` before committing
+4.  **Test your changes**:
+    ```bash
+    npm test && npm run lint && npm run build
+    ```
+5.  **Submit a pull request** targeting the `develop` branch.
+
+**GitFlow Guidelines:**
+- **Feature branches** → `develop` (for integration)
+- **develop** → `main` (for production releases)
+- Use conventional commit messages for automated releases
+- Ensure CI/CD passes on your feature branch
+
+For detailed guidelines, see our [Development Workflow](#development) and [GitFlow Workflow](#-gitflow-workflow) sections.
 
 ## License
 
