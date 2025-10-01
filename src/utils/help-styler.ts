@@ -141,6 +141,7 @@ export class HelpStyler {
    */
   static stripColors(text: string): string {
     // Remove ANSI escape codes
+    // eslint-disable-next-line no-control-regex
     return text.replace(/\x1b\[[0-9;]*m/g, '');
   }
 
