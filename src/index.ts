@@ -2,41 +2,77 @@
 
 import { Command } from 'commander';
 import { CommandRegistry } from './core/infrastructure';
+import { HelpStyler } from './utils/help-styler';
 import { Logger } from './utils/logger';
 import packageJson from '../package.json';
 
 async function main(): Promise<void> {
   const program = new Command();
 
-  const customDescription = `${packageJson.description}
+  const customDescription = HelpStyler.formatMainDescription(`${packageJson.description}
 
-Load environment variables from multiple sources (.env files, HashiCorp Vault, OpenBao) and execute commands with injected configuration.
-Configure default commands in envoi.yml and override them with command-line arguments.
-Manage named configurations for different environments and projects.
+Quick Start:
+  envoi exec                    # Run default command from envoi.yml
+  envoi exec "npm start"        # Run specific command
+  envoi env                    # Show loaded environment variables
+  envoi config init            # Setup configuration directories
 
 Features:
-  - Named configuration execution: envoi [config_name]
-  - Dual configuration system: user (~/.envoi/) and project (.envoi/) directories
-  - Configuration management: init, create, show, list, edit, remove
-  - Priority-based configuration merging: project > user > legacy
+  • Named configurations: envoi [config_name]
+  • Multiple environments: user (~/.envoi/) and project (.envoi/) configs
+  • Environment variable injection from .env files, OpenBao, and more
+  • Default command configuration with override support
 
-Examples:
-  envoi exec                    # Uses default command from envoi.yml
-  envoi exec "node server.js" # Override with command line
-  envoi exec -- node server.js  # New -- separator syntax
-  envoi env                    # Show environment variables
-  
-  # Configuration management
-  envoi config init            # Initialize configuration directories
-  envoi config create my-config # Create named configuration
-  envoi config ls              # List available configurations
-  envoi my-config              # Execute named configuration
-  envoi my-config "npm start"  # Override command in configuration
-  
-  # Environment variable injection
-  envoi exec "echo $DATABASE_URL" --verbose`;
+Configuration Management:
+  envoi config create <name>   # Create named configuration
+  envoi config ls              # List all configurations
+  envoi <config_name>          # Execute named configuration`);
 
-  program.name(packageJson.name).description(customDescription).version(packageJson.version);
+  program.name(packageJson.name.substring(packageJson.name.indexOf('/') + 1)).description(customDescription).version(packageJson.version);
+
+  // Configure help output with colors and separators
+  program.configureHelp({
+    styleTitle: (str) => HelpStyler.styleHeader(str),
+    styleUsage: (str) => HelpStyler.styleOption(str),
+    styleCommandText: (str) => HelpStyler.styleCommand(str),
+    styleOptionText: (str) => HelpStyler.styleOption(str),
+    styleDescriptionText: (str) => HelpStyler.formatCommandDescription(str),
+    sortSubcommands: true,
+    sortOptions: true,
+    formatItemList: (heading, items, helper) => {
+      if (items.length === 0) return [];
+      
+      // Special handling for Commands section to add separators
+      if (heading === 'Commands:') {
+        const result = [helper.styleTitle(heading)];
+        items.forEach((item, index) => {
+          result.push(item);
+          // Add separator after each command except the last one
+          if (index < items.length - 1) {
+            result.push(HelpStyler.createCommandSeparator());
+          }
+        });
+        result.push(''); // Add blank line after commands section
+        return result;
+      }
+      
+      // Default formatting for other sections (Options, Arguments, etc.)
+      return [helper.styleTitle(heading), ...items, ''];
+    }
+  });
+
+  // Configure output for proper color handling
+  program.configureOutput({
+    getOutHasColors: () => {
+      // Check if stdout supports colors
+      return process.stdout.isTTY && !process.env.NO_COLOR;
+    },
+    getErrHasColors: () => {
+      // Check if stderr supports colors  
+      return process.stderr.isTTY && !process.env.NO_COLOR;
+    },
+    stripColor: (str) => HelpStyler.stripColors(str)
+  });
 
   try {
     await CommandRegistry.registerCommands(program);

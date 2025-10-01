@@ -1,19 +1,24 @@
 import { BaseCommand } from './BaseCommand';
 import { Logger } from '../../utils/logger';
+import { HelpStyler } from '../../utils/help-styler';
 import { ProgramOption } from '../../types';
 import { resolveVariables } from '../../core/resolver';
 
 export class EnvCommand extends BaseCommand {
   command = 'env';
-  description = `Show loaded environment variables and their sources
+  description = HelpStyler.formatCommandDescription(`Show loaded environment variables and their sources
 
-Displays all resolved environment variables with their values and where they were loaded from.
-Source information shows: "environment" (existing env vars), "local:KEY" (.env files), "vault:PATH" (HashiCorp Vault), "openbao:PATH" (OpenBao), or "default".
-Also shows the default command configuration if defined in envoi.yml.
+Displays resolved environment variables with values and source information:
+- environment: existing system variables
+- local:KEY: variables from .env files  
+- openbao:PATH: variables from OpenBao
+- default: configured default values
+
+Also shows the default command configuration if defined.
 
 Examples:
-  envoi env
-  envoi env --config ./config/envoi.yml`;
+  envoi env                     # Show variables from default config
+  envoi env --config ./custom.yml  # Use specific config file`);
   
   options: ProgramOption[] = [
     {

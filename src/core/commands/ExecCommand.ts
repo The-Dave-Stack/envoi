@@ -1,25 +1,24 @@
 import { BaseCommand } from './BaseCommand';
 import { EnvoiError } from '../../utils/errors';
 import { Logger } from '../../utils/logger';
+import { HelpStyler } from '../../utils/help-styler';
 import { ProgramOption } from '../../types';
 import { resolveAndExecute } from '../../core/resolver';
 
 export class ExecCommand extends BaseCommand {
   command = 'exec';
-  description = `Execute a command with injected environment variables
-Loads variables from configured sources (.env files, HashiCorp Vault, OpenBao) and injects them into the command environment.
-Variables are resolved in order: existing env → configured sources → defaults.
+  description = HelpStyler.formatCommandDescription(`Execute a command with injected environment variables
 
-If no command is provided via command line, uses the default command from envoi.yml.
-Command line arguments override the default configuration.
+Loads variables from .env files, OpenBao, and other configured sources into the command environment.
+If no command is provided, uses the default command from envoi.yml.
 
 Examples:
-  envoi exec                    # Uses default command from envoi.yml
-  envoi exec "node server.js"   # Override with command line
-  envoi exec -- node server.js  # New -- separator syntax
-  envoi exec "npm start" --config ./config/envoi.yml
-  envoi exec -- npm start --config ./config/envoi.yml
-  envoi exec "echo $DATABASE_URL" --verbose`;
+  envoi exec                           # Uses default command
+  envoi exec "npm start"               # Run specific command
+  envoi exec -- node server.js        # Use -- separator for complex commands
+  envoi exec "echo $DATABASE_URL" -v   # Show variable resolution
+
+Use "envoi exec --help" to see all options.`);
   
   options: ProgramOption[] = [
     {

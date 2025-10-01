@@ -1,5 +1,6 @@
 import { ConfigCommand } from './ConfigCommand';
 import { Logger } from '../../utils/logger';
+import { HelpStyler } from '../../utils/help-styler';
 import { ProgramOption } from '../../types';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -7,24 +8,26 @@ import * as os from 'os';
 
 export class MainConfigCommand extends ConfigCommand {
   command = 'config';
-  description = `Manage envoi configurations
-  
-Supports dual configuration system with user (~/.envoi/) and project (.envoi/) directories.
-Create, list, show, edit, and remove named configurations for different environments.
+  description = HelpStyler.formatCommandDescription(`Manage envoi configurations
+
+Create and manage named configurations for different environments and projects.
+Supports user (~/.envoi/) and project (.envoi/) configuration directories.
 
 Subcommands:
-  init        Initialize configuration directories
-  ls          List available configurations  
-  show <name> Show configuration details
-  create <name> Create new configuration
-  edit <name> Edit configuration file
-  rm <name>   Remove configuration
+  init              Initialize configuration directories
+  ls                List available configurations
+  show <name>       Show configuration details
+  create <name>     Create new configuration
+  edit <name>       Edit configuration file
+  rm <name>         Remove configuration
 
 Examples:
-  envoi config init              # Setup directories
-  envoi config create dev        # Create dev config
-  envoi config ls               # List all configs
-  envoi dev                     # Execute dev config`;
+  envoi config init           # Setup directories
+  envoi config create dev     # Create dev configuration
+  envoi config ls            # List all configurations
+  envoi dev                  # Execute 'dev' configuration
+
+Use "envoi config <subcommand> --help" for subcommand details.`);
   
   options: ProgramOption[] = [
     {
