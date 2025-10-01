@@ -504,9 +504,9 @@ git push origin main
 
 ### 📝 Commit Types & Version Bumps
 
-- **`feat`**: New features → Minor version (0.2.1 → 0.3.0)
-- **`fix`**: Bug fixes → Patch version (0.2.1 → 0.2.2)
-- **`BREAKING CHANGE`**: Breaking changes → Major version (0.2.1 → 1.0.0)
+- **`feat`**: New features → Minor version (0.2.2 → 0.3.0)
+- **`fix`**: Bug fixes → Patch version (0.2.2 → 0.2.3)
+- **`BREAKING CHANGE`**: Breaking changes → Major version (0.2.2 → 1.0.0)
 - **`docs`, `chore`, `ci`, etc.**: No version bump
 
 ### 🆘 Emergency Releases
