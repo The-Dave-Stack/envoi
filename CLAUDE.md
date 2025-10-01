@@ -36,6 +36,38 @@ npm run lint:fix
 
 # Clean build artifacts
 npm run clean
+
+# Validate project setup (includes all checks)
+npm run validate-cicd
+
+# Create conventional commits
+npm run commit
+
+# Prepare git hooks
+npm run prepare
+```
+
+### GitFlow Workflow
+
+```bash
+# Create feature branch from develop
+git checkout develop
+git checkout -b feature/new-feature develop
+
+# Development workflow
+npm run validate-cicd
+npm test && npm run lint && npm run build
+npm run commit
+
+# Integration: merge feature → develop
+git checkout develop
+git merge feature/new-feature
+git push origin develop
+
+# Release: merge develop → main (when ready for production)
+git checkout main
+git merge develop
+git push origin main  # Triggers automated release
 ```
 
 ### Testing the CLI

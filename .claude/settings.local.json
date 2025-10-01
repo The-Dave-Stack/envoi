@@ -13,7 +13,8 @@
       "Bash(gh run view:*)",
       "Bash(npm test:*)",
       "mcp__mcp-backlog-md__list_tasks",
-      "mcp__mcp-backlog-md__create_task"
+      "mcp__mcp-backlog-md__create_task",
+      "mcp__mcp-backlog-md__view_task"
     ],
     "deny": [],
     "ask": []
