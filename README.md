@@ -1,6 +1,7 @@
 # envoi
 [![CI](https://github.com/The-Dave-Stack/envoi/actions/workflows/ci.yml/badge.svg)](https://github.com/The-Dave-Stack/envoi/actions/workflows/ci.yml)
-[![npm version](https://badge.fury.io/js/envoi.svg)](https://badge.fury.io/js/envoi)
+[![Release](https://github.com/The-Dave-Stack/envoi/actions/workflows/release.yml/badge.svg)](https://github.com/The-Dave-Stack/envoi/actions/workflows/release.yml)
+[![npm version](https://badge.fury.io/js/%40thedavestack%2Fenvoi.svg)](https://badge.fury.io/js/%40thedavestack%2Fenvoi)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 *Your trusted configuration messenger*
@@ -31,6 +32,8 @@ Environment-agnostic configuration orchestrator for consistent application deplo
   - [Variable Resolution Order](#variable-resolution-order)
 - [Examples](#examples)
 - [Development](#development)
+- [Release Process](#release-process)
+- [CI/CD Pipeline](#cicd-pipeline)
 - [Project Roadmap](#project-roadmap)
 - [Version History](#version-history)
 - [Contributing](#contributing)
@@ -408,9 +411,45 @@ envoi exec -- npm start
 
 ## Development
 
-  - **Build:** `npm run build`
-  - **Test:** `npm test` or `npm run test:watch`
-  - **Lint:** `npm run lint` or `npm run lint:fix`
+### Quick Start for Developers
+
+1. **Install dependencies:** `npm install`
+2. **Run validation:** `npm run validate-cicd` (ensures your setup is ready)
+3. **Make changes** using conventional commits: `npm run commit`
+4. **Test locally:** `npm test && npm run lint && npm run build`
+
+### Available Scripts
+
+- **`npm run validate-cicd`** - Comprehensive project validation
+- **`npm run build`** - Compile TypeScript to JavaScript
+- **`npm test`** - Run test suite
+- **`npm run test:watch`** - Run tests in watch mode
+- **`npm run lint`** - Check code style and syntax
+- **`npm run lint:fix`** - Automatically fix linting issues
+- **`npm run dev`** - Run in development mode
+- **`npm run clean`** - Remove build artifacts
+- **`npm run clean:all`** - Clean everything including node_modules
+- **`npm run commit`** - Guided conventional commit creation
+
+### Conventional Commits
+
+This project uses automated releases based on conventional commits. Use `npm run commit` for a guided experience or follow this format:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+**Common types:**
+- `feat`: New feature (minor version bump)
+- `fix`: Bug fix (patch version bump) 
+- `docs`: Documentation changes
+- `chore`: Maintenance tasks
+- `ci`: CI/CD changes
+- `BREAKING CHANGE`: Major version bump
 
 ### Development Environment with Docker
 
@@ -436,111 +475,108 @@ For contributors looking to work with the OpenBao provider, this project include
 
 ## Release Process
 
-Envoi uses a manual release process with automated changelog management to ensure proper versioning. Follow these steps to create a new release:
+Envoi uses **automated releases** with semantic-release to ensure consistent versioning and reduce manual overhead. Releases are triggered automatically when you push to the main branch.
 
-### 1. Prepare the Release
+### 🚀 Automated Release Process
 
-1. **Verify Changelog**: Check current changelog status
-   ```bash
-   npm run changelog:verify
-   ```
-
-2. **Update Changelog**: Add changes to the [Unreleased] section manually in `CHANGELOG.md`
-
-3. **Run Tests**: Ensure all tests pass and code is properly linted
-   ```bash
-   npm test && npm run lint
-   ```
-
-4. **Build Project**: Verify the build completes successfully
-   ```bash
-   npm run build
-   ```
-
-### 2. Version Bump
-
-Update the version in `package.json` following semantic versioning:
-
+**1. Make changes with conventional commits:**
 ```bash
-# Patch version (bug fixes)
-npm version patch --no-git-tag-version
+# Use guided commit creation
+npm run commit
 
-# Minor version (new features)
-npm version minor --no-git-tag-version
-
-# Major version (breaking changes)
-npm version major --no-git-tag-version
+# Or manual conventional commits
+git commit -m "feat: add new feature"
+git commit -m "fix: resolve issue"
+git commit -m "docs: update documentation"
 ```
 
-### 3. Update Changelog for Release
-
-Use the automated script to create the release section:
-
+**2. Push to main branch:**
 ```bash
-# This will move [Unreleased] content to a new version section
-npm run changelog:release <version>
-# Example: npm run changelog:release 0.1.1
+git push origin main
 ```
 
-The script will:
-- Move all content from [Unreleased] to a new version section
-- Add the current date
-- Create a new [Unreleased] section
-- Update version links at the bottom of the file
+**3. Automatic release happens:**
+- ✅ Version is calculated from commit messages
+- ✅ Changelog is automatically generated
+- ✅ GitHub release is created with release notes
+- ✅ Package is published to npm registry
+- ✅ Git tags are created automatically
 
-### 4. Add New Unreleased Section (Optional)
+### 📝 Commit Types & Version Bumps
 
-If you're planning multiple releases, add a new unreleased section:
+- **`feat`**: New features → Minor version (0.2.1 → 0.3.0)
+- **`fix`**: Bug fixes → Patch version (0.2.1 → 0.2.2)
+- **`BREAKING CHANGE`**: Breaking changes → Major version (0.2.1 → 1.0.0)
+- **`docs`, `chore`, `ci`, etc.**: No version bump
 
+### 🆘 Emergency Releases
+
+For emergency situations when the automated system is unavailable, see the [Release Process Guide](./docs/RELEASE-PROCESS.md) for manual steps.
+
+### 📋 Release Checklist
+
+**Before Pushing:**
+- [ ] All tests pass locally (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] Follow conventional commit format
+- [ ] Run validation (`npm run validate-cicd`)
+
+**After Push (Automated):**
+- [x] ✅ GitHub release automatically created
+- [x] ✅ npm package automatically published
+- [x] ✅ Changelog automatically updated
+- [x] ✅ Semantic version automatically calculated
+
+For detailed information about the release process, see [docs/RELEASE-PROCESS.md](./docs/RELEASE-PROCESS.md).
+
+-----
+
+## CI/CD Pipeline
+
+Envoi features a comprehensive CI/CD pipeline with automated testing, security scanning, and releases.
+
+### 🔄 CI/CD Workflows
+
+**Main CI/CD Pipeline** (`.github/workflows/ci.yml`):
+- Runs on every push to main and feature branches
+- Executes test suite with coverage reporting
+- Performs security scanning with CodeQL analysis
+- Builds and validates project artifacts
+- Provides detailed notifications
+
+**Automated Releases** (`.github/workflows/release.yml`):
+- Triggered by pushes to main branch
+- Uses semantic-release for version management
+- Creates GitHub releases with auto-generated notes
+- Publishes packages to npm registry
+- Updates changelog automatically
+
+**Health Monitoring** (`.github/workflows/health-monitor.yml`):
+- Runs daily health checks
+- Monitors dependency updates
+- Validates project structure and configurations
+- Provides repository health metrics
+
+### 📊 Monitoring & Validation
+
+**Project Validation:**
 ```bash
-npm run changelog:add
+npm run validate-cicd  # Comprehensive project health check
 ```
 
-### 5. Commit and Tag
+**Daily Health Checks:**
+- Dependency vulnerability scanning
+- Configuration file validation
+- Build and test verification
+- Repository health metrics
 
-```bash
-# Commit changes
-git add package.json CHANGELOG.md
-git commit -m "chore(release): 0.1.1"
+### 📖 Documentation
 
-# Create tag
-git tag v0.1.1
-
-# Push to GitHub
-git push origin main --follow-tags
-```
-
-### 6. Create GitHub Release
-
-1. Go to: https://github.com/The-Dave-Stack/envoi/releases
-2. Click "Create a new release"
-3. Select the tag you just created (e.g., v0.1.1)
-4. Add release notes from the changelog
-5. Click "Publish release"
-
-### 7. Automated npm Publish
-
-Once the release is created and pushed to main, the CI/CD workflow will automatically:
-- Run all tests
-- Build the project
-- Publish to npm registry
-
-### Release Checklist
-
-- [ ] All tests pass
-- [ ] Code is properly linted
-- [ ] Changelog is updated
-- [ ] Version is bumped correctly
-- [ ] Git tag is created
-- [ ] GitHub release is created
-- [ ] npm publish completes successfully
-
-### CI/CD Workflow
-
-The `.github/workflows/ci.yml` workflow:
-- Runs tests on every push and pull request
-- Publishes to npm only on pushes to main branch
-- Can be manually triggered via GitHub Actions UI
+For comprehensive CI/CD information:
+- **[CI/CD Documentation](./docs/CI-CD.md)** - Complete pipeline guide
+- **[Release Process Guide](./docs/RELEASE-PROCESS.md)** - Release procedures and troubleshooting
+- **[GitHub Actions](https://github.com/The-Dave-Stack/envoi/actions)** - View workflow runs and status
 
 -----
 
