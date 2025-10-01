@@ -30,22 +30,22 @@
 - `fix`: Patch version bump (0.2.1 → 0.2.2)
 - `BREAKING CHANGE`: Major version bump (0.2.1 → 1.0.0)
 
-## Manual Releases (Emergency)
+## Manual Releases (Emergency Only)
+
+⚠️ **This process should only be used for emergency releases when the automated system is unavailable.**
 
 ### Step 1: Update Version
 ```bash
 npm version patch  # or minor, major
 ```
 
-### Step 2: Update Changelog
-```bash
-npm run changelog:release v0.2.2
-```
+### Step 2: Update Changelog Manually
+Edit `CHANGELOG.md` to add the new version section and update links
 
 ### Step 3: Create Release
 ```bash
 git push origin main --tags
-gh release create v0.2.2 --title "Release v0.2.2" --notes "$(cat CHANGELOG.md | sed -n '/## \[v0.2.2\]/,/## \[/p')"
+gh release create v0.2.2 --title "Release v0.2.2" --notes "Release notes here"
 ```
 
 ### Step 4: Publish to npm
@@ -79,12 +79,13 @@ npm publish --access public
 - [ ] Linting passes
 - [ ] Build succeeds
 - [ ] Documentation updated
-- [ ] CHANGELOG.md updated
 - [ ] Dependencies audited
+- [ ] **Automated**: CHANGELOG.md automatically updated by semantic-release
 
-### After Release
-- [ ] Verify GitHub release created
-- [ ] Check npm package published
+### After Release (Automated)
+- [ ] ✅ GitHub release automatically created
+- [ ] ✅ npm package automatically published
+- [ ] ✅ CHANGELOG.md automatically updated
 - [ ] Update any dependent projects
 - [ ] Communicate release to users
 - [ ] Monitor for issues
@@ -114,8 +115,14 @@ npm test
 # Check for security issues
 npm audit
 
-# Validate changelog
-npm run validate-changelog
+# Validate CI/CD setup
+npm run validate-cicd
+
+# Create conventional commit
+npm run commit
+
+# Trigger semantic-release manually
+npm run semantic-release
 ```
 
 ## Environment Setup

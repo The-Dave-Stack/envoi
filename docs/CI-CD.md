@@ -239,16 +239,18 @@ Use conventional commit format:
 ### Development Workflow
 
 1. **Branch Strategy**: Use feature branches for development
-2. **Commit Messages**: Follow conventional commit format
+2. **Commit Messages**: Follow conventional commit format (use `npm run commit` for guided commits)
 3. **Pull Requests**: Ensure PRs pass CI before merging
-4. **Local Testing**: Run tests and linting before pushing
+4. **Local Testing**: Run `npm run validate-cicd` before pushing
+5. **Automated Releases**: Semantic-release handles version bumping and publishing
 
 ### Release Management
 
-1. **Semantic Versioning**: Follow semantic versioning principles
-2. **Changelog Updates**: Let semantic-release handle changelog
-3. **Release Notes**: Review auto-generated release notes
-4. **Version Planning**: Plan breaking changes carefully
+1. **Semantic Versioning**: Automatically handled by semantic-release based on commit types
+2. **Changelog Updates**: Automatically generated and updated
+3. **Release Notes**: Auto-generated and published to GitHub releases
+4. **Version Planning**: Plan breaking changes carefully (use `BREAKING CHANGE:` in commit messages)
+5. **Emergency Releases**: Manual process documented in RELEASE-PROCESS.md
 
 ### Security
 
