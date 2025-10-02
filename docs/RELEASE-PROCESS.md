@@ -129,7 +129,7 @@ npm run semantic-release
 
 ### Required Secrets
 - `NPM_TOKEN`: npm publishing token
-- `GITHUB_TOKEN`: GitHub API token (auto-provided)
+- `PERSONAL_GITHUB_TOKEN`: GitHub API token (auto-provided)
 - `CODECOV_TOKEN`: Codecov token (optional)
 
 ### Local Setup
