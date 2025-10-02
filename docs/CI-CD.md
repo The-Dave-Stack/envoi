@@ -136,13 +136,13 @@ Use conventional commit format:
 ### Required Secrets
 
 1. **`NPM_TOKEN`**: For publishing to npm registry
-2. **`GITHUB_TOKEN`**: For creating GitHub releases (automatically provided)
+2. **`PERSONAL_GITHUB_TOKEN`**: For creating GitHub releases (automatically provided)
 3. **`CODECOV_TOKEN`**: For uploading test coverage (optional)
 
 ### Environment Variables
 
 - `NODE_AUTH_TOKEN`: Set from NPM_TOKEN secret
-- `GITHUB_TOKEN`: Automatically provided by GitHub Actions
+- `PERSONAL_GITHUB_TOKEN`: Automatically provided by GitHub Actions
 
 ## Performance Optimizations
 
